@@ -64,37 +64,39 @@ export class DragonsVsLeprechaunsGame {
 
   resize() {
     const container = document.getElementById('canvas-container');
-    this.width = container.clientWidth;
-    this.height = container.clientHeight;
+    if (!container) return;
+    this.width = container.clientWidth || 360;
+    this.height = container.clientHeight || 640;
 
     this.canvas.width = this.width;
     this.canvas.height = this.height;
 
-    this.dragonSquad.resize(this.width, this.height);
-    this.leprechaunManager.resize(this.width, this.height);
-    this.gateManager.resize(this.width, this.height);
-    this.powerUpManager.resize(this.width, this.height);
+    if (this.dragonSquad) this.dragonSquad.resize(this.width, this.height);
+    if (this.leprechaunManager) this.leprechaunManager.resize(this.width, this.height);
+    if (this.gateManager) this.gateManager.resize(this.width, this.height);
+    if (this.powerUpManager) this.powerUpManager.resize(this.width, this.height);
   }
 
   togglePause() {
+    const pauseScreen = document.getElementById('pause-screen');
     if (this.state === 'RUNNING') {
       this.state = 'PAUSED';
-      document.getElementById('pause-screen').classList.remove('hidden');
+      if (pauseScreen) pauseScreen.classList.remove('hidden');
     } else if (this.state === 'PAUSED') {
       this.state = 'RUNNING';
-      document.getElementById('pause-screen').classList.add('hidden');
+      if (pauseScreen) pauseScreen.classList.add('hidden');
     }
   }
 
   resumeGame() {
     this.state = 'RUNNING';
-    document.getElementById('pause-screen').classList.add('hidden');
+    const pauseScreen = document.getElementById('pause-screen');
+    if (pauseScreen) pauseScreen.classList.add('hidden');
   }
 
-  // Spawns a Tough Boss on the Track without stopping forward runner movement!
   spawnTrackBoss() {
     this.bossCount++;
-    const bossHp = 50 + (this.bossCount * 40); // 1st: 90 HP, 2nd: 130 HP, 3rd: 170 HP
+    const bossHp = 50 + (this.bossCount * 40);
     this.leprechaunManager.spawnBoss(bossHp);
     this.soundSynth.playDragonRoar();
     this.particlePool.triggerShake(8, 0.4);
@@ -105,14 +107,23 @@ export class DragonsVsLeprechaunsGame {
     this.soundSynth.playPotholeCrash();
     this.state = 'GAMEOVER';
 
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('gameover-reason').innerText = reason;
-    
-    document.getElementById('go-potholes').innerText = this.enemiesDefeated;
-    document.getElementById('go-moonpies').innerText = `${this.dragonSquad.squadSize} 🐉`;
-    document.getElementById('go-score').innerText = Math.round(this.score);
+    const hud = document.getElementById('hud');
+    if (hud) hud.classList.add('hidden');
 
-    document.getElementById('gameover-screen').classList.remove('hidden');
+    const elReason = document.getElementById('gameover-reason');
+    if (elReason) elReason.innerText = reason;
+
+    const elPotholes = document.getElementById('go-potholes');
+    if (elPotholes) elPotholes.innerText = this.enemiesDefeated;
+
+    const elMoonpies = document.getElementById('go-moonpies');
+    if (elMoonpies) elMoonpies.innerText = `${this.dragonSquad ? this.dragonSquad.squadSize : 0} 🐉`;
+
+    const elScore = document.getElementById('go-score');
+    if (elScore) elScore.innerText = Math.round(this.score);
+
+    const goScreen = document.getElementById('gameover-screen');
+    if (goScreen) goScreen.classList.remove('hidden');
   }
 
   update(dt) {
@@ -121,21 +132,18 @@ export class DragonsVsLeprechaunsGame {
     this.particlePool.update(dt);
     this.dragonSquad.update(dt);
 
-    // Continuous Endless Track Distance & Speed Scaling
     this.distance += dt * 35;
     this.score += dt * 25;
 
-    // Gradual difficulty scaling with distance
     this.speed = 3.4 + Math.min(2.0, (this.distance / 500) * 1.5);
 
-    // Check Boss Spawn Milestone (Every 200m on the track!)
     const currentBossMilestone = Math.floor(this.distance / 200);
     if (currentBossMilestone > this.lastBossMilestone && this.distance >= 200) {
       this.lastBossMilestone = currentBossMilestone;
       this.spawnTrackBoss();
     }
 
-    // 1. Spawn Multiplier Gates (Arrives first at start distance 15m for initial upgrade!)
+    // 1. Spawn Multiplier Gates
     this.gateTimer += dt;
     if (this.gateTimer > 3.8) {
       const isFirst = (this.gateManager.gatePairs.length === 0 && this.distance < 40);
@@ -191,10 +199,9 @@ export class DragonsVsLeprechaunsGame {
         }
       },
       (boss) => {
-        // Track Boss Defeated on the Highway! GAME CONTINUES SEAMLESSLY!
         this.enemiesDefeated += 25;
         this.score += 5000;
-        this.dragonSquad.addDragons(10); // Reward +10 dragons!
+        this.dragonSquad.addDragons(10);
         this.soundSynth.playShopBuy();
         this.particlePool.spawnDamagePopup(this.width / 2, 140, '🏆 BOSS DEFEATED! +5000 PTS & +10 DRAGONS!', '#10b981');
       }
@@ -224,16 +231,24 @@ export class DragonsVsLeprechaunsGame {
       this.gameOver('All dragons eliminated!');
     }
 
-    // Update HUD
+    // Defensive DOM updates with strict null safety!
     const evo = this.dragonSquad.getEvolutionTier();
     const nextBossDist = Math.max(0, Math.round(((this.lastBossMilestone + 1) * 200) - this.distance));
-    document.getElementById('hud-potholes').innerText = this.enemiesDefeated;
-    document.getElementById('hud-next-milestone').innerText = `(${nextBossDist}m to Boss ${this.bossCount + 1})`;
-    document.getElementById('hud-moonpies').innerText = `${this.dragonSquad.squadSize} 🐉`;
-    if (document.getElementById('hud-ammo-count')) {
-      document.getElementById('hud-ammo-count').innerText = evo.name;
-    }
-    document.getElementById('hud-score').innerText = Math.round(this.score).toString().padStart(5, '0');
+
+    const elPotholes = document.getElementById('hud-potholes');
+    if (elPotholes) elPotholes.innerText = this.enemiesDefeated;
+
+    const elMilestone = document.getElementById('hud-next-milestone');
+    if (elMilestone) elMilestone.innerText = `(${nextBossDist}m to Boss ${this.bossCount + 1})`;
+
+    const elMoonpies = document.getElementById('hud-moonpies');
+    if (elMoonpies) elMoonpies.innerText = `${this.dragonSquad.squadSize} 🐉`;
+
+    const elAmmo = document.getElementById('hud-ammo-count');
+    if (elAmmo) elAmmo.innerText = evo.name;
+
+    const elScore = document.getElementById('hud-score');
+    if (elScore) elScore.innerText = Math.round(this.score).toString().padStart(5, '0');
 
     // Update Powerup Bar
     let pillsHTML = '';

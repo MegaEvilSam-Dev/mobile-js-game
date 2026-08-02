@@ -62,18 +62,24 @@ export class DragonSquad {
   }
 
   setSquadSize(newSize) {
-    this.squadSize = Math.max(0, Math.min(300, Math.round(newSize)));
+    const val = Number(newSize);
+    if (isNaN(val) || !isFinite(val)) return;
+    this.squadSize = Math.max(0, Math.min(300, Math.round(val)));
     this.rebuildMob();
   }
 
   addDragons(count) {
-    this.squadSize = Math.min(300, this.squadSize + Math.round(count));
+    const val = Number(count);
+    if (isNaN(val) || !isFinite(val)) return;
+    this.squadSize = Math.min(300, this.squadSize + Math.round(val));
     this.rebuildMob();
   }
 
   removeDragons(count) {
     if (this.shieldTimer > 0) return; // Shield invulnerability!
-    this.squadSize = Math.max(0, this.squadSize - Math.round(count));
+    const val = Number(count);
+    if (isNaN(val) || !isFinite(val)) return;
+    this.squadSize = Math.max(0, this.squadSize - Math.round(val));
     this.rebuildMob();
   }
 
