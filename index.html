@@ -67,11 +67,23 @@
       <!-- Start / Main Menu Overlay -->
       <div id="menu-screen" class="overlay-screen">
         <div class="menu-content glass-card">
-          <div class="game-badge">MOBILE, ALABAMA EDITION ⚜️</div>
-          <h1 class="game-title">MOBILE BAY<br><span class="highlight-text">POTHOLE PANIC</span></h1>
-          <p class="game-subtitle">Survive I-10 & Government Street • Grab Mobile's Famous Moonpies • Battle the Delta Gator-Dragon!</p>
+          <div class="game-badge">SELECT GAME MODE 🎮</div>
+          <h1 class="game-title">MOBILE BAY<br><span class="highlight-text">ARCADE RUNNER</span></h1>
 
-          <div class="instructions-card">
+          <!-- Game Mode Selector Buttons -->
+          <div class="mode-selector-grid">
+            <button id="mode-potholes-btn" class="mode-tab-btn active" data-mode="potholes">
+              <span>🥮 MODE 1: POTHOLE PANIC</span>
+              <small>Dodge craters • Collect Moonpies • Battle Dragon</small>
+            </button>
+            <button id="mode-dragons-btn" class="mode-tab-btn" data-mode="dragons">
+              <span>🐉 MODE 2: DRAGONS VS LEPRECHAUNS</span>
+              <small>2 Lanes • Shoot Math Gates • Build Dragon Flock</small>
+            </button>
+          </div>
+
+          <!-- Mode 1 Instructions Card -->
+          <div id="inst-potholes" class="instructions-card">
             <div class="inst-item">
               <span class="inst-icon">🕳️</span>
               <span><strong>Dodge Potholes:</strong> Dodge craters at comfortable highway speeds!</span>
@@ -81,12 +93,24 @@
               <span><strong>Moonpie Ammo:</strong> Each Golden Moonpie grants <strong>10 Ammo Shots</strong>!</span>
             </div>
             <div class="inst-item">
-              <span class="inst-icon">🛒</span>
-              <span><strong>Shop System:</strong> Buy shields & boosts at every pitstop milestone!</span>
-            </div>
-            <div class="inst-item">
               <span class="inst-icon">🐊</span>
               <span><strong>Quick Boss Routes:</strong> 1st Gator-Dragon Boss arrives at <strong>25 Potholes</strong>!</span>
+            </div>
+          </div>
+
+          <!-- Mode 2 Instructions Card -->
+          <div id="inst-dragons" class="instructions-card hidden">
+            <div class="inst-item">
+              <span class="inst-icon">🍀</span>
+              <span><strong>Shoot Leprechauns:</strong> Dragon automatically shoots fireballs!</span>
+            </div>
+            <div class="inst-item">
+              <span class="inst-icon">🎯</span>
+              <span><strong>Shoot Math Gates:</strong> Shooting gates increases their value!</span>
+            </div>
+            <div class="inst-item">
+              <span class="inst-icon">🐉</span>
+              <span><strong>Flock Growth:</strong> Positive gates add mini dragons! 0 dragons = Game Over!</span>
             </div>
           </div>
 

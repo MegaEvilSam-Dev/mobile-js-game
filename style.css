@@ -156,6 +156,48 @@ html, body {
   justify-content: center;
 }
 
+/* Mode Selector Tabs */
+.mode-selector-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-tab-btn {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.mode-tab-btn span {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.mode-tab-btn small {
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.mode-tab-btn.active {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.mode-tab-btn.active small {
+  color: #cbd5e1;
+}
+
 /* Powerup Status Bar */
 .powerup-bar {
   display: flex;
