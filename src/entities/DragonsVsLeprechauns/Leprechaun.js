@@ -15,32 +15,36 @@ export class LeprechaunManager {
     this.leprechauns = [];
   }
 
-  // Spawn Bundled Cluster of 3-5 Basic Enemies
+  // Spawn Horizontally Bundled Enemy Cluster (Side-by-side row)
   spawnBundledCluster(speed) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
 
     const lane = Math.floor(Math.random() * this.numLanes);
-    const x = roadX + (lane * laneWidth) + (laneWidth / 2);
-    const clusterSize = 3 + Math.floor(Math.random() * 3); // 3 to 5 enemies
+    const laneCenterX = roadX + (lane * laneWidth) + (laneWidth / 2);
+    const y = -60;
 
-    for (let k = 0; k < clusterSize; k++) {
-      const y = -60 - (k * 36); // Stacked formation
+    // Spawn 2 to 3 enemies side-by-side horizontally across the lane
+    const count = 2 + Math.floor(Math.random() * 2); // 2 or 3 enemies
+    const offsets = [-20, 0, 20];
+
+    for (let k = 0; k < count; k++) {
+      const offsetX = offsets[k % offsets.length];
       this.leprechauns.push({
         lane,
-        x,
+        x: laneCenterX + offsetX,
         y,
         hp: 1,
         maxHp: 1,
-        size: 30,
+        size: 28,
         isMiniBoss: false,
         escaped: false
       });
     }
   }
 
-  // Spawn Giant Leprechaun King Mini-Boss with Increased Health (15 HP)
+  // Spawn Giant Leprechaun King Mini-Boss (Toned down HP from 15 to 6)
   spawnMiniBoss(speed) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -48,29 +52,24 @@ export class LeprechaunManager {
 
     const lane = Math.floor(Math.random() * this.numLanes);
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
-    const y = -90;
+    const y = -80;
 
     this.leprechauns.push({
       lane,
       x,
       y,
-      hp: 15, // Increased health!
-      maxHp: 15,
-      size: 52,
+      hp: 6, // Reduced HP from 15 to 6 for balanced difficulty!
+      maxHp: 6,
+      size: 46,
       isMiniBoss: true,
       escaped: false
     });
   }
 
   update(speed, dragonSquad, onEliminateLeprechaun, onEliminateMiniBoss, onLeprechaunEscaped) {
-    const roadX = 40;
-    const roadWidth = this.canvasWidth - 80;
-    const laneWidth = roadWidth / this.numLanes;
-
     for (let i = this.leprechauns.length - 1; i >= 0; i--) {
       const lep = this.leprechauns[i];
       lep.y += speed;
-      lep.x = roadX + (lep.lane * laneWidth) + (laneWidth / 2);
 
       // Check hits from dragon fireballs
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
@@ -91,8 +90,8 @@ export class LeprechaunManager {
       }
 
       // Check collision with main dragon
-      if (Math.abs(lep.y - dragonSquad.y) < 40 && lep.lane === dragonSquad.lane) {
-        const damage = lep.isMiniBoss ? 3 : 1;
+      if (Math.abs(lep.y - dragonSquad.y) < 38 && Math.abs(lep.x - dragonSquad.x) < 40) {
+        const damage = lep.isMiniBoss ? 2 : 1;
         dragonSquad.removeDragons(damage);
         this.leprechauns.splice(i, 1);
         continue;
@@ -101,7 +100,7 @@ export class LeprechaunManager {
       // Check if enemy ESCAPED past the player!
       if (!lep.escaped && lep.y > dragonSquad.y + 40) {
         lep.escaped = true;
-        const penalty = lep.isMiniBoss ? 3 : 1;
+        const penalty = lep.isMiniBoss ? 2 : 1;
         onLeprechaunEscaped(penalty);
       }
 
@@ -118,50 +117,45 @@ export class LeprechaunManager {
       ctx.translate(lep.x, lep.y);
 
       if (lep.isMiniBoss) {
-        // --- GIANT LEPRECHAUN KING MINI-BOSS ---
         ctx.fillStyle = '#047857';
         ctx.beginPath();
         ctx.arc(0, 0, lep.size / 2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Giant Gold Crown
         ctx.fillStyle = '#f59e0b';
         ctx.beginPath();
-        ctx.moveTo(-18, -26);
-        ctx.lineTo(-24, -48);
-        ctx.lineTo(-8, -34);
-        ctx.lineTo(0, -52);
-        ctx.lineTo(8, -34);
-        ctx.lineTo(24, -48);
-        ctx.lineTo(18, -26);
+        ctx.moveTo(-16, -24);
+        ctx.lineTo(-20, -42);
+        ctx.lineTo(-7, -30);
+        ctx.lineTo(0, -46);
+        ctx.lineTo(7, -30);
+        ctx.lineTo(20, -42);
+        ctx.lineTo(16, -24);
         ctx.closePath();
         ctx.fill();
 
-        // Health Bar above Mini-Boss
         const hpPercent = lep.hp / lep.maxHp;
         ctx.fillStyle = '#0f172a';
-        ctx.fillRect(-22, -60, 44, 6);
+        ctx.fillRect(-20, -54, 40, 5);
         ctx.fillStyle = '#10b981';
-        ctx.fillRect(-22, -60, 44 * hpPercent, 6);
+        ctx.fillRect(-20, -54, 40 * hpPercent, 5);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '800 10px Outfit';
         ctx.textAlign = 'center';
-        ctx.fillText(`MINI-BOSS ${lep.hp}HP`, 0, -66);
-
+        ctx.fillText(`MINI-BOSS ${lep.hp}HP`, 0, -60);
       } else {
-        // --- BASIC LEPRECHAUN ---
         ctx.fillStyle = '#15803d';
         ctx.beginPath();
         ctx.arc(0, 0, lep.size / 2, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = '#166534';
-        ctx.fillRect(-16, -26, 32, 6);
-        ctx.fillRect(-10, -42, 20, 16);
+        ctx.fillRect(-14, -22, 28, 5);
+        ctx.fillRect(-9, -36, 18, 14);
 
         ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(-4, -30, 8, 8);
+        ctx.fillRect(-3, -26, 6, 6);
       }
 
       ctx.restore();

@@ -14,7 +14,7 @@ export class DragonsVsLeprechaunsGame {
     this.height = canvas.clientHeight;
 
     this.state = 'RUNNING';
-    this.speed = 4.8;
+    this.speed = 3.8; // Comfortable, fun speed!
     this.score = 0;
     this.leprechaunsEliminated = 0;
     this.numLanes = 2;
@@ -101,16 +101,16 @@ export class DragonsVsLeprechaunsGame {
     this.score += dt * 15;
     this.dragonSquad.update(dt, this.soundSynth);
 
-    // Spawn Bundled Enemy Clusters
+    // Spawn Horizontally Bundled Enemy Clusters
     this.spawnTimer += dt;
-    if (this.spawnTimer > 1.1) {
+    if (this.spawnTimer > 1.6) {
       this.spawnTimer = 0;
       this.leprechaunManager.spawnBundledCluster(this.speed);
     }
 
-    // Spawn Mini-Bosses (Every 6.5s)
+    // Spawn Mini-Bosses (Every 8.0s)
     this.miniBossTimer += dt;
-    if (this.miniBossTimer > 6.5) {
+    if (this.miniBossTimer > 8.0) {
       this.miniBossTimer = 0;
       this.leprechaunManager.spawnMiniBoss(this.speed);
     }

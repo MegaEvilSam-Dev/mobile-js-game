@@ -9,7 +9,7 @@ export class DragonSquad {
     this.targetX = canvasWidth / 2;
     this.y = canvasHeight - 160;
 
-    this.dragonCount = 1; // Starts with 1 dragon
+    this.dragonCount = 2; // Starts with 2 dragons for balanced starting firepower!
     this.fireballs = [];
     this.shootTimer = 0;
     this.wingAngle = 0;
@@ -59,8 +59,8 @@ export class DragonSquad {
     this.x += (this.targetX - this.x) * 0.25;
     this.wingAngle = Math.sin(Date.now() * 0.015) * 0.4;
 
-    // Slower starting rate of fire (0.6s at 1 dragon, speeds up with larger flock)
-    const shootCooldown = Math.max(0.18, 0.6 - (this.dragonCount * 0.02));
+    // Improved starting rate of fire
+    const shootCooldown = Math.max(0.15, 0.45 - (this.dragonCount * 0.015));
 
     this.shootTimer += dt;
     if (this.shootTimer > shootCooldown) {

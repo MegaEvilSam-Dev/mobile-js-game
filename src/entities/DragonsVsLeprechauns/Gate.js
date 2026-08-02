@@ -23,8 +23,8 @@ export class GateManager {
     const lane = Math.floor(Math.random() * this.numLanes);
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
     
-    // Spawn Negative Gates that must be turned positive! (e.g. -6, -4, -3)
-    const initialValue = -(Math.floor(Math.random() * 5) + 2); // -2 to -6
+    // Spawn Negative Gates with easier values (-1 to -3) for balanced difficulty
+    const initialValue = -(Math.floor(Math.random() * 3) + 1); // -1, -2, or -3
     const y = -80;
 
     this.gates.push({
