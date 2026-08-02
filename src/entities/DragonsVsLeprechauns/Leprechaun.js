@@ -17,7 +17,7 @@ export class LeprechaunManager {
     this.bosses = [];
   }
 
-  // Spawn Enemy Mobs (Standard & Gold Pot Tanks)
+  // Spawn Enemy Mobs
   spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -61,29 +61,51 @@ export class LeprechaunManager {
     });
   }
 
-  // Spawn Boss as a Tough Highway Enemy on the Track (Does NOT stop runner!)
+  // Spawn Boss in a Specific Lane (NOT centered)
   spawnBoss(hp = 60) {
+    const roadX = 40;
+    const roadWidth = this.canvasWidth - 80;
+    const laneWidth = roadWidth / this.numLanes;
+    const lane = Math.floor(Math.random() * this.numLanes);
+    const x = roadX + (lane * laneWidth) + (laneWidth / 2);
+
     this.bosses.push({
-      x: this.canvasWidth / 2,
+      lane,
+      x,
       y: -140,
       hp,
       maxHp: hp,
       size: 70,
       active: true,
-      escaped: false
+      isEngaged: false // Set to true when meeting player, pausing damage & track!
     });
   }
 
   update(speed, dragonSquad, particlePool, onEliminateArmy, onArmyClash, onArmyEscaped, onBossDefeated) {
-    // 1. Update Tough Track Bosses (continuous runner movement!)
+    let isAnyBossEngaged = false;
+
+    // 1. Update Lane Bosses
     for (let i = this.bosses.length - 1; i >= 0; i--) {
       const boss = this.bosses[i];
-      boss.y += speed * 0.45; // Moves downward with highway track traffic!
 
-      // Fireball hits on Boss
+      // Check if boss meets player line in same lane
+      if (!boss.isEngaged && Math.abs(boss.y - dragonSquad.y) < 40 && boss.lane === dragonSquad.lane) {
+        boss.isEngaged = true;
+        particlePool.triggerShake(6, 0.3);
+      }
+
+      // If engaged, pause downward movement (stops at player line)
+      if (boss.isEngaged) {
+        isAnyBossEngaged = true;
+        boss.y = dragonSquad.y - 35; // Locked at meeting position
+      } else {
+        boss.y += speed * 0.45; // Moves downward with traffic until meeting player
+      }
+
+      // Fireball hits on Boss (Damage to player is 0 while engaged!)
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
-        if (Math.hypot(fb.x - boss.x, fb.y - boss.y) < boss.size / 2 + fb.radius) {
+        if (Math.hypot(fb.x - boss.x, fb.y - boss.y) < boss.size / 2 + fb.radius + 10) {
           dragonSquad.fireballs.splice(j, 1);
           boss.hp -= 2;
 
@@ -100,22 +122,16 @@ export class LeprechaunManager {
         }
       }
 
-      // Collision with Dragon Squad
-      if (Math.abs(boss.y - dragonSquad.y) < 50) {
-        dragonSquad.removeDragons(4);
-        particlePool.triggerShake(8, 0.2);
-        particlePool.spawnExplosion(boss.x, boss.y, '#ef4444', 10);
-      }
-
       if (boss.y > this.canvasHeight + 120) {
         this.bosses.splice(i, 1);
       }
     }
 
-    // 2. Update Regular Enemy Army Mobs
+    // 2. Update Regular Mobs (only move if boss not engaged)
+    const activeSpeed = isAnyBossEngaged ? 0 : speed;
     for (let i = this.armyMobs.length - 1; i >= 0; i--) {
       const mob = this.armyMobs[i];
-      mob.y += mob.isGoldTank ? (speed * 0.75) : speed;
+      mob.y += mob.isGoldTank ? (activeSpeed * 0.75) : activeSpeed;
 
       // Fireball hits
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
@@ -174,12 +190,14 @@ export class LeprechaunManager {
         this.armyMobs.splice(i, 1);
       }
     }
+
+    return isAnyBossEngaged;
   }
 
   draw(ctx) {
     ctx.save();
 
-    // 1. Draw Tough Track Bosses
+    // 1. Draw Lane Bosses
     for (const boss of this.bosses) {
       ctx.save();
       ctx.translate(boss.x, boss.y);
@@ -207,14 +225,14 @@ export class LeprechaunManager {
 
       const hpPercent = Math.max(0, boss.hp / boss.maxHp);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-      ctx.fillRect(-60, -85, 120, 12);
+      ctx.fillRect(-50, -85, 100, 10);
       ctx.fillStyle = '#ef4444';
-      ctx.fillRect(-60, -85, 120 * hpPercent, 12);
+      ctx.fillRect(-50, -85, 100 * hpPercent, 10);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 11px Outfit';
+      ctx.font = '900 10px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText(`LEPRECHAUN KING HP: ${Math.max(0, boss.hp)}`, 0, -76);
+      ctx.fillText(`LANE ${boss.lane + 1} BOSS HP: ${Math.max(0, boss.hp)}`, 0, -76);
 
       ctx.restore();
     }

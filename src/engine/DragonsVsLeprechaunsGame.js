@@ -13,7 +13,7 @@ export class DragonsVsLeprechaunsGame {
     this.onReturnMenu = onReturnMenu;
 
     this.state = 'RUNNING';
-    this.speed = 3.4;
+    this.speed = 2.2; // Starts at a smooth, relaxing, accessible speed!
     this.distance = 0;
     this.score = 0;
     this.enemiesDefeated = 0;
@@ -103,11 +103,11 @@ export class DragonsVsLeprechaunsGame {
 
   spawnTrackBoss() {
     this.bossCount++;
-    const bossHp = 50 + (this.bossCount * 40);
+    const bossHp = 40 + (this.bossCount * 30);
     this.leprechaunManager.spawnBoss(bossHp);
     this.soundSynth.playDragonRoar();
     this.particlePool.triggerShake(8, 0.4);
-    this.particlePool.spawnDamagePopup(this.width / 2, 100, `👑 BOSS ${this.bossCount} APPROACHING!`, '#f59e0b');
+    this.particlePool.spawnDamagePopup(this.width / 2, 100, `👑 BOSS ${this.bossCount} APPROACHING IN LANE!`, '#f59e0b');
   }
 
   gameOver(reason) {
@@ -139,10 +139,45 @@ export class DragonsVsLeprechaunsGame {
     this.particlePool.update(dt);
     this.dragonSquad.update(dt);
 
-    this.distance += dt * 35;
-    this.score += dt * 25;
+    // Update Enemy Mobs & Lane Bosses
+    const isBossEngaged = this.leprechaunManager.update(
+      this.speed,
+      this.dragonSquad,
+      this.particlePool,
+      (mob) => {
+        this.enemiesDefeated += mob.mobSize || 10;
+        this.score += 500;
+        this.soundSynth.playMoonpieChime();
+      },
+      () => {
+        this.soundSynth.playPotholeCrash();
+        if (this.dragonSquad.squadSize <= 0) {
+          this.gameOver('Dragon Mob wiped out in Total War Army Clash!');
+        }
+      },
+      (escapedUnits) => {
+        this.dragonSquad.removeDragons(escapedUnits);
+        if (this.dragonSquad.squadSize <= 0) {
+          this.gameOver('Red Leprechaun Army overran your base!');
+        }
+      },
+      (boss) => {
+        // Boss Defeated! Resume runner progression!
+        this.enemiesDefeated += 25;
+        this.score += 5000;
+        this.dragonSquad.addDragons(10);
+        this.soundSynth.playShopBuy();
+        this.particlePool.spawnDamagePopup(this.width / 2, 140, '🏆 BOSS DEFEATED! +5000 PTS & +10 DRAGONS!', '#10b981');
+      }
+    );
 
-    this.speed = 3.4 + Math.min(2.0, (this.distance / 500) * 1.5);
+    // If boss is engaged meeting player, pause forward track scrolling & spawner!
+    if (isBossEngaged) return;
+
+    // Track Distance & Speed Scaling (starts slow at 2.2)
+    this.distance += dt * 30;
+    this.score += dt * 20;
+    this.speed = 2.2 + Math.min(1.8, (this.distance / 500) * 1.6);
 
     const currentBossMilestone = Math.floor(this.distance / 200);
     if (currentBossMilestone > this.lastBossMilestone && this.distance >= 200) {
@@ -182,37 +217,6 @@ export class DragonsVsLeprechaunsGame {
       this.particlePool.spawnExplosion(this.dragonSquad.x, this.dragonSquad.y, '#60a5fa', 12);
       this.particlePool.spawnDamagePopup(this.dragonSquad.x, this.dragonSquad.y - 30, `+${type.toUpperCase()}`, '#60a5fa');
     });
-
-    // Update Enemy Mobs & Tough Track Bosses
-    this.leprechaunManager.update(
-      this.speed,
-      this.dragonSquad,
-      this.particlePool,
-      (mob) => {
-        this.enemiesDefeated += mob.mobSize || 10;
-        this.score += 500;
-        this.soundSynth.playMoonpieChime();
-      },
-      () => {
-        this.soundSynth.playPotholeCrash();
-        if (this.dragonSquad.squadSize <= 0) {
-          this.gameOver('Dragon Mob wiped out in Total War Army Clash!');
-        }
-      },
-      (escapedUnits) => {
-        this.dragonSquad.removeDragons(escapedUnits);
-        if (this.dragonSquad.squadSize <= 0) {
-          this.gameOver('Red Leprechaun Army overran your base!');
-        }
-      },
-      (boss) => {
-        this.enemiesDefeated += 25;
-        this.score += 5000;
-        this.dragonSquad.addDragons(10);
-        this.soundSynth.playShopBuy();
-        this.particlePool.spawnDamagePopup(this.width / 2, 140, '🏆 BOSS DEFEATED! +5000 PTS & +10 DRAGONS!', '#10b981');
-      }
-    );
 
     // Update Multiplier Gates
     this.gateManager.update(this.speed, this.dragonSquad, this.particlePool, (gate) => {
