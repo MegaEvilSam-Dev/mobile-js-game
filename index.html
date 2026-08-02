@@ -183,10 +183,18 @@
         </div>
       </div>
 
-      <!-- Mobile On-Screen Touch Controls -->
+      <!-- Pause Screen Overlay -->
+      <div id="pause-screen" class="overlay-screen hidden">
+        <div class="pause-content glass-card">
+          <h2>⏸️ GAME PAUSED</h2>
+          <p>Press 'P' or tap below to resume your Mobile Bay run!</p>
+          <button id="pause-resume-btn" class="primary-btn">RESUME GAME ▶</button>
+        </div>
+      </div>
+
+      <!-- Mobile On-Screen Touch Controls (Left & Right Only) -->
       <div id="touch-controls" class="touch-controls-layer">
         <button id="touch-left" class="touch-btn">◀</button>
-        <button id="touch-jump" class="touch-btn jump-btn">JUMP 🚀</button>
         <button id="touch-right" class="touch-btn">▶</button>
       </div>
     </div>

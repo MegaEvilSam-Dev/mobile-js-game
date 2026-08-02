@@ -16,12 +16,13 @@ export class Game {
     this.height = canvas.clientHeight;
 
     this.state = 'MENU';
+    this.previousState = 'RUNNING';
 
-    this.speed = 4.5; // Comfortable highway cruising speed
+    this.speed = 4.5;
     this.score = 0;
     this.potholesDodged = 0;
     this.goldenMoonpies = 0;
-    this.moonpieAmmo = 10; // 10 shots per moonpie! Starts with 10 free shots.
+    this.moonpieAmmo = 10;
     this.highScore = parseFloat(localStorage.getItem('pothole_panic_highscore') || '0');
 
     this.lastShopMilestone = 0;
@@ -61,7 +62,8 @@ export class Game {
         } else {
           this.player.jump();
         }
-      }
+      },
+      () => this.togglePause()
     );
 
     this.lastTime = 0;
@@ -71,15 +73,25 @@ export class Game {
     window.addEventListener('resize', () => this.resize());
   }
 
+  togglePause() {
+    if (this.state === 'RUNNING' || this.state === 'BOSS_FIGHT') {
+      this.previousState = this.state;
+      this.state = 'PAUSED';
+      this.hud.showPause();
+    } else if (this.state === 'PAUSED') {
+      this.state = this.previousState || 'RUNNING';
+      this.hud.hidePause();
+    }
+  }
+
   handleThrowMoonpie() {
     if (this.state !== 'BOSS_FIGHT' || !this.dragonBoss.active) return;
 
     if (this.moonpieAmmo > 0) {
-      this.moonpieAmmo--; // Consume 1 ammo shot out of 10 per moonpie
+      this.moonpieAmmo--;
       this.dragonBoss.throwMoonpie(this.player.x, this.player.y);
       this.soundSynth.playJump();
     } else {
-      // Emergency shot if out of ammo
       this.dragonBoss.throwMoonpie(this.player.x, this.player.y);
       this.soundSynth.playJump();
     }
@@ -111,7 +123,7 @@ export class Game {
     this.score = 0;
     this.potholesDodged = 0;
     this.goldenMoonpies = 0;
-    this.moonpieAmmo = 10; // Starts with 10 ammo shots!
+    this.moonpieAmmo = 10;
     this.speed = 4.5;
     this.lastShopMilestone = 0;
     this.lastBossMilestone = 0;
@@ -129,6 +141,7 @@ export class Game {
     this.state = 'RUNNING';
     this.hud.showGameHUD();
     this.hud.hideBossHUD();
+    this.hud.hidePause();
   }
 
   restartRun() {
@@ -136,8 +149,13 @@ export class Game {
   }
 
   resumeRun() {
-    this.state = 'RUNNING';
-    this.hud.closeShop();
+    if (this.state === 'PAUSED') {
+      this.state = this.previousState || 'RUNNING';
+      this.hud.hidePause();
+    } else {
+      this.state = 'RUNNING';
+      this.hud.closeShop();
+    }
   }
 
   triggerShop() {
@@ -208,7 +226,6 @@ export class Game {
 
     this.player.update(dt);
 
-    // Smooth & gentle speed curve (max speed capped at 8.5)
     this.speed = 4.5 + Math.min(4.0, this.potholesDodged * 0.03);
     this.road.update(this.speed);
 
@@ -244,7 +261,7 @@ export class Game {
       this.player,
       (moonpie) => {
         this.goldenMoonpies++;
-        this.moonpieAmmo += 10; // +10 Ammo Shots per Golden Moonpie collected!
+        this.moonpieAmmo += 10;
         this.score += 500;
         this.soundSynth.playMoonpieChime();
       }
@@ -276,7 +293,7 @@ export class Game {
       if (!this.dragonBoss.active) {
         this.hud.hideBossHUD();
         this.goldenMoonpies += 2;
-        this.moonpieAmmo += 10; // Bonus ammo reward!
+        this.moonpieAmmo += 10;
         this.score += 2500;
         this.state = 'RUNNING';
       }
@@ -293,7 +310,6 @@ export class Game {
   }
 
   checkMilestones() {
-    // Quick routes: 1st boss at 25 potholes, 2nd boss at 50 potholes, 3rd+ at 75, 100...
     const bossMilestone = Math.floor(this.potholesDodged / 25);
     const shopMilestone = Math.floor(this.potholesDodged / 25);
 

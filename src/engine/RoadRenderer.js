@@ -5,14 +5,14 @@ export class RoadRenderer {
     this.scrollOffsetY = 0;
     this.numLanes = 3;
 
-    // Generate textured asphalt noise
+    // Generate asphalt pavement noise texture
     this.noiseCanvas = document.createElement('canvas');
     this.noiseCanvas.width = 128;
     this.noiseCanvas.height = 128;
     const nCtx = this.noiseCanvas.getContext('2d');
     const imgData = nCtx.createImageData(128, 128);
     for (let i = 0; i < imgData.data.length; i += 4) {
-      const val = 30 + Math.floor(Math.random() * 22);
+      const val = 34 + Math.floor(Math.random() * 20);
       imgData.data[i] = val;
       imgData.data[i+1] = val + 2;
       imgData.data[i+2] = val + 4;
@@ -33,36 +33,25 @@ export class RoadRenderer {
   draw(ctx) {
     ctx.save();
 
-    // 1. Mobile Bay Horizon Sky Gradient (Dusk Purple-Navy)
+    // 1. Mobile Bay Coast Sky & Horizon Background
     const skyGrad = ctx.createLinearGradient(0, 0, 0, this.canvasHeight);
-    skyGrad.addColorStop(0, '#0c1322');
-    skyGrad.addColorStop(0.5, '#1e293b');
+    skyGrad.addColorStop(0, '#0a1120');
+    skyGrad.addColorStop(0.4, '#172554');
     skyGrad.addColorStop(1, '#0f172a');
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-    // 2. Mobile Bay Coastal Water Margins
+    // 2. Mobile Bay Water Margins
     ctx.fillStyle = '#0b2545';
     ctx.fillRect(0, 0, 24, this.canvasHeight);
     ctx.fillRect(this.canvasWidth - 24, 0, 24, this.canvasHeight);
 
-    // Highway Guardrails
-    ctx.fillStyle = '#475569';
+    // Concrete Highway Barriers & Shoulders
+    ctx.fillStyle = '#334155';
     ctx.fillRect(20, 0, 4, this.canvasHeight);
     ctx.fillRect(this.canvasWidth - 24, 0, 4, this.canvasHeight);
 
-    // Mardi Gras Beads (Subtle Accents)
-    const beads = ['#7c3aed', '#d97706', '#059669'];
-    for (let y = -90 + this.scrollOffsetY; y < this.canvasHeight + 90; y += 45) {
-      const color = beads[Math.abs(Math.floor(y / 45)) % 3];
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(18, y, 3, 0, Math.PI * 2);
-      ctx.arc(this.canvasWidth - 18, y, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // 3. Realistic Asphalt Road Surface
+    // 3. Realistic Asphalt Pavement Texture
     const roadX = 24;
     const roadWidth = this.canvasWidth - 48;
 
@@ -70,12 +59,12 @@ export class RoadRenderer {
     ctx.fillStyle = pattern;
     ctx.fillRect(roadX, 0, roadWidth, this.canvasHeight);
 
-    // Road Depth Gradient
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    // Asphalt Shading Gradient
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
     ctx.fillRect(roadX, 0, roadWidth, this.canvasHeight);
 
-    // 4. Crisp Outer White Road Lines
-    ctx.strokeStyle = '#e2e8f0';
+    // 4. Solid White Outer Highway Lines
+    ctx.strokeStyle = '#f1f5f9';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(roadX + 4, 0);
@@ -84,9 +73,9 @@ export class RoadRenderer {
     ctx.lineTo(this.canvasWidth - roadX - 4, this.canvasHeight);
     ctx.stroke();
 
-    // 5. Stylized Yellow Highway Lane Dividers
+    // 5. High-Visibility Yellow Highway Lane Dividers
     const laneWidth = roadWidth / this.numLanes;
-    ctx.strokeStyle = '#f59e0b';
+    ctx.strokeStyle = '#eab308';
     ctx.lineWidth = 3.5;
     ctx.setLineDash([40, 40]);
     ctx.lineDashOffset = -this.scrollOffsetY;
@@ -98,6 +87,13 @@ export class RoadRenderer {
     ctx.lineTo(roadX + laneWidth * 2, this.canvasHeight);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // 6. Roadside Reflective Markers
+    for (let y = -90 + this.scrollOffsetY; y < this.canvasHeight + 90; y += 120) {
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(16, y, 6, 14);
+      ctx.fillRect(this.canvasWidth - 22, y, 6, 14);
+    }
 
     ctx.restore();
   }

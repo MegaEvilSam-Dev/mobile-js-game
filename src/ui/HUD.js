@@ -11,6 +11,7 @@ export class HUD {
     this.menuScreen = document.getElementById('menu-screen');
     this.shopScreen = document.getElementById('shop-screen');
     this.gameoverScreen = document.getElementById('gameover-screen');
+    this.pauseScreen = document.getElementById('pause-screen');
     this.bossHud = document.getElementById('boss-hud');
     this.warningBanner = document.getElementById('warning-banner');
 
@@ -41,6 +42,10 @@ export class HUD {
     document.getElementById('start-btn').addEventListener('click', () => this.onStartRun());
     document.getElementById('restart-btn').addEventListener('click', () => this.onRestartRun());
     document.getElementById('resume-btn').addEventListener('click', () => this.onResumeRun());
+    const pauseResume = document.getElementById('pause-resume-btn');
+    if (pauseResume) {
+      pauseResume.addEventListener('click', () => this.onResumeRun());
+    }
     this.soundBtn.addEventListener('click', () => this.onToggleSound());
 
     // Shop Buy Buttons
@@ -58,12 +63,22 @@ export class HUD {
     this.hudLayer.classList.add('hidden');
     this.shopScreen.classList.add('hidden');
     this.gameoverScreen.classList.add('hidden');
+    if (this.pauseScreen) this.pauseScreen.classList.add('hidden');
+  }
+
+  showPause() {
+    if (this.pauseScreen) this.pauseScreen.classList.remove('hidden');
+  }
+
+  hidePause() {
+    if (this.pauseScreen) this.pauseScreen.classList.add('hidden');
   }
 
   showGameHUD() {
     this.menuScreen.classList.add('hidden');
     this.shopScreen.classList.add('hidden');
     this.gameoverScreen.classList.add('hidden');
+    if (this.pauseScreen) this.pauseScreen.classList.add('hidden');
     this.hudLayer.classList.remove('hidden');
   }
 
