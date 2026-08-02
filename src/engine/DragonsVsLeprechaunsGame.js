@@ -13,8 +13,8 @@ export class DragonsVsLeprechaunsGame {
     this.width = canvas.clientWidth;
     this.height = canvas.clientHeight;
 
-    this.state = 'RUNNING'; // RUNNING, PAUSED, GAMEOVER
-    this.speed = 5;
+    this.state = 'RUNNING';
+    this.speed = 4.8;
     this.score = 0;
     this.leprechaunsEliminated = 0;
     this.numLanes = 2;
@@ -94,26 +94,41 @@ export class DragonsVsLeprechaunsGame {
     this.score += dt * 15;
     this.dragonSquad.update(dt, this.soundSynth);
 
-    // Spawn Leprechauns
+    // Spawn More Enemies (Every 0.65s!)
     this.spawnTimer += dt;
-    if (this.spawnTimer > 1.2) {
+    if (this.spawnTimer > 0.65) {
       this.spawnTimer = 0;
       this.leprechaunManager.spawnLeprechaun(this.speed);
     }
 
-    // Spawn Gate Pairs
+    // Spawn Fewer Staggered Gates (Every 5.5s)
     this.gateTimer += dt;
-    if (this.gateTimer > 3.2) {
+    if (this.gateTimer > 5.5) {
       this.gateTimer = 0;
-      this.gateManager.spawnGatePair();
+      this.gateManager.spawnSingleStaggeredGate();
     }
 
     // Update Leprechauns
-    this.leprechaunManager.update(this.speed, this.dragonSquad, (lep) => {
-      this.leprechaunsEliminated++;
-      this.score += 200;
-      this.soundSynth.playMoonpieChime();
-    });
+    this.leprechaunManager.update(
+      this.speed,
+      this.dragonSquad,
+      (lep) => {
+        // Eliminated enemy
+        this.leprechaunsEliminated++;
+        this.score += 200;
+        this.soundSynth.playMoonpieChime();
+      },
+      (escapedLep) => {
+        // ESCAPED ENEMY -> -1 to player dragon total!
+        this.dragonSquad.removeDragons(1);
+        this.soundSynth.playPotholeCrash();
+
+        // If reduced to 0 dragons -> END OF GAME!
+        if (this.dragonSquad.dragonCount <= 0) {
+          this.gameOver('Leprechauns escaped! All dragons lost!');
+        }
+      }
+    );
 
     // Update Gates
     this.gateManager.update(this.speed, this.dragonSquad, (gateValue) => {
@@ -124,14 +139,13 @@ export class DragonsVsLeprechaunsGame {
         this.dragonSquad.removeDragons(Math.abs(gateValue));
         this.soundSynth.playPotholeCrash();
 
-        // Reduced to 0 dragons = END OF GAME!
         if (this.dragonSquad.dragonCount <= 0) {
-          this.gameOver('All dragons eliminated by negative gate!');
+          this.gameOver('Hit negative gate! All dragons lost!');
         }
       }
     });
 
-    // Game Over if 0 dragons
+    // Check 0 dragons game over
     if (this.dragonSquad.dragonCount <= 0 && this.state !== 'GAMEOVER') {
       this.gameOver('All dragons eliminated!');
     }

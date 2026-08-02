@@ -30,11 +30,12 @@ export class LeprechaunManager {
       y,
       hp: 2,
       maxHp: 2,
-      size: 32
+      size: 32,
+      escaped: false
     });
   }
 
-  update(speed, dragonSquad, onEliminateLeprechaun) {
+  update(speed, dragonSquad, onEliminateLeprechaun, onLeprechaunEscaped) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
@@ -65,6 +66,12 @@ export class LeprechaunManager {
         continue;
       }
 
+      // Check if Leprechaun ESCAPED past the player!
+      if (!lep.escaped && lep.y > dragonSquad.y + 40) {
+        lep.escaped = true;
+        onLeprechaunEscaped(lep); // -1 to player dragon total!
+      }
+
       if (lep.y > this.canvasHeight + 60) {
         this.leprechauns.splice(i, 1);
       }
@@ -77,22 +84,18 @@ export class LeprechaunManager {
       ctx.save();
       ctx.translate(lep.x, lep.y);
 
-      // Green Leprechaun Body
       ctx.fillStyle = '#15803d';
       ctx.beginPath();
       ctx.arc(0, 0, lep.size / 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Leprechaun Green Top Hat
       ctx.fillStyle = '#166534';
-      ctx.fillRect(-16, -26, 32, 6); // Hat brim
-      ctx.fillRect(-10, -42, 20, 16); // Hat top
+      ctx.fillRect(-16, -26, 32, 6);
+      ctx.fillRect(-10, -42, 20, 16);
 
-      // Gold Hat Buckle
       ctx.fillStyle = '#f59e0b';
       ctx.fillRect(-4, -30, 8, 8);
 
-      // Gold Coin Pot
       ctx.fillStyle = '#eab308';
       ctx.beginPath();
       ctx.arc(0, 4, 6, 0, Math.PI * 2);

@@ -3,13 +3,13 @@ export class DragonSquad {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
 
-    this.numLanes = 2; // Mode 2 is 2 lanes!
-    this.lane = 0; // 0 = Left Lane, 1 = Right Lane (or position between lanes)
+    this.numLanes = 2;
+    this.lane = 0;
     this.x = canvasWidth / 2;
     this.targetX = canvasWidth / 2;
     this.y = canvasHeight - 160;
 
-    this.dragonCount = 1; // Starts with 1 main dragon!
+    this.dragonCount = 1; // Starts with 1 dragon
     this.fireballs = [];
     this.shootTimer = 0;
     this.wingAngle = 0;
@@ -27,7 +27,6 @@ export class DragonSquad {
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
     
-    // Calculate X coordinate based on lane (0 = Left, 1 = Right)
     this.targetX = roadX + (this.lane * laneWidth) + (laneWidth / 2);
     if (immediate) {
       this.x = this.targetX;
@@ -57,32 +56,33 @@ export class DragonSquad {
   }
 
   update(dt, soundSynth) {
-    // Smooth lane transition
     this.x += (this.targetX - this.x) * 0.25;
     this.wingAngle = Math.sin(Date.now() * 0.015) * 0.4;
 
-    // Automatic Fireball Shooting
+    // Slower starting rate of fire (0.6s at 1 dragon, speeds up with larger flock)
+    const shootCooldown = Math.max(0.18, 0.6 - (this.dragonCount * 0.02));
+
     this.shootTimer += dt;
-    if (this.shootTimer > 0.25) {
+    if (this.shootTimer > shootCooldown) {
       this.shootTimer = 0;
 
       // Main dragon shoots
       this.fireballs.push({
         x: this.x,
         y: this.y - 30,
-        speed: 14,
+        speed: 13,
         radius: 8
       });
 
-      // Mini dragons also shoot!
+      // Mini dragons shoot
       const numMiniShooters = Math.min(6, this.dragonCount - 1);
       for (let i = 0; i < numMiniShooters; i++) {
         const offsetAngle = ((i / numMiniShooters) * Math.PI) - (Math.PI / 2);
-        const offsetX = Math.cos(offsetAngle) * 35;
+        const offsetX = Math.cos(offsetAngle) * 32;
         this.fireballs.push({
           x: this.x + offsetX,
           y: this.y - 15,
-          speed: 14,
+          speed: 13,
           radius: 6
         });
       }
@@ -103,7 +103,7 @@ export class DragonSquad {
 
     ctx.save();
 
-    // 1. Draw Mini Dragons (Flock flying alongside main dragon)
+    // 1. Draw Mini Dragons
     const miniCount = Math.min(20, this.dragonCount - 1);
     for (let i = 0; i < miniCount; i++) {
       const radiusOffset = 38 + Math.floor(i / 6) * 22;
@@ -118,7 +118,6 @@ export class DragonSquad {
       ctx.arc(0, 0, 10, 0, Math.PI * 2);
       ctx.fill();
 
-      // Mini Wings
       ctx.fillStyle = '#065f46';
       ctx.fillRect(-14, -4, 28, 4);
       ctx.restore();
@@ -128,7 +127,6 @@ export class DragonSquad {
     ctx.save();
     ctx.translate(this.x, this.y);
 
-    // Wings
     ctx.fillStyle = '#047857';
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -142,26 +140,22 @@ export class DragonSquad {
     ctx.quadraticCurveTo(40, 30, 0, 0);
     ctx.fill();
 
-    // Body
     ctx.fillStyle = '#10b981';
     ctx.beginPath();
     ctx.arc(0, 0, 24, 0, Math.PI * 2);
     ctx.fill();
 
-    // Snout
     ctx.fillStyle = '#065f46';
     ctx.beginPath();
     ctx.roundRect(-10, -30, 20, 18, 4);
     ctx.fill();
 
-    // Eyes
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
     ctx.arc(-8, -12, 4, 0, Math.PI * 2);
     ctx.arc(8, -12, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Squad Counter Badge
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
     ctx.arc(0, 0, 12, 0, Math.PI * 2);

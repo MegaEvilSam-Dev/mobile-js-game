@@ -2,7 +2,7 @@ export class GateManager {
   constructor(canvasWidth, canvasHeight) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
-    this.gatePairs = [];
+    this.gates = [];
     this.numLanes = 2;
   }
 
@@ -12,101 +12,99 @@ export class GateManager {
   }
 
   reset() {
-    this.gatePairs = [];
+    this.gates = [];
   }
 
-  spawnGatePair() {
+  spawnSingleStaggeredGate() {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
 
-    // Generate random values for Left & Right lane gates
-    const val1 = Math.floor(Math.random() * 8) - 3; // -3 to +5
-    let val2 = Math.floor(Math.random() * 8) - 3;
-    if (val1 < 0 && val2 < 0) val2 = Math.abs(val2) + 2; // Guarantee at least 1 positive option
-
+    // Pick 1 lane (0 or 1) for staggered gate spawn
+    const lane = Math.floor(Math.random() * this.numLanes);
+    const x = roadX + (lane * laneWidth) + (laneWidth / 2);
+    
+    // Gate value ranges from -2 to +4
+    const value = Math.floor(Math.random() * 7) - 2;
     const y = -80;
 
-    this.gatePairs.push({
+    this.gates.push({
+      lane,
+      x,
       y,
-      gates: [
-        { lane: 0, x: roadX + laneWidth / 2, width: laneWidth - 8, value: val1, passed: false },
-        { lane: 1, x: roadX + laneWidth + laneWidth / 2, width: laneWidth - 8, value: val2, passed: false }
-      ]
+      width: laneWidth - 12,
+      value,
+      passed: false
     });
   }
 
   update(speed, dragonSquad, onHitGate) {
-    for (let i = this.gatePairs.length - 1; i >= 0; i--) {
-      const pair = this.gatePairs[i];
-      pair.y += speed;
+    for (let i = this.gates.length - 1; i >= 0; i--) {
+      const g = this.gates[i];
+      g.y += speed;
 
-      for (const gate of pair.gates) {
-        // Check fireball hits on gates -> INCREASES THE GATE VALUE!
-        for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
-          const fb = dragonSquad.fireballs[j];
-          if (Math.abs(fb.x - gate.x) < gate.width / 2 && Math.abs(fb.y - pair.y) < 25) {
-            dragonSquad.fireballs.splice(j, 1);
-            gate.value += 1; // Shooting gates increases value!
-          }
-        }
-
-        // Check Dragon collision with gate
-        if (!gate.passed && Math.abs(pair.y - dragonSquad.y) < 30 && gate.lane === dragonSquad.lane) {
-          gate.passed = true;
-          onHitGate(gate.value);
-          pair.gates.forEach(g => g.passed = true); // Mark both passed
+      // Check fireball hits -> INCREASES THE GATE VALUE!
+      for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
+        const fb = dragonSquad.fireballs[j];
+        if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - g.y) < 25) {
+          dragonSquad.fireballs.splice(j, 1);
+          g.value += 1; // Shooting the gate increases value!
         }
       }
 
-      if (pair.y > this.canvasHeight + 80) {
-        this.gatePairs.splice(i, 1);
+      // Check Dragon collision with gate
+      if (!g.passed && Math.abs(g.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
+        g.passed = true;
+        onHitGate(g.value);
+        this.gates.splice(i, 1);
+        continue;
+      }
+
+      if (g.y > this.canvasHeight + 80) {
+        this.gates.splice(i, 1);
       }
     }
   }
 
   draw(ctx) {
     ctx.save();
-    for (const pair of this.gatePairs) {
-      for (const g of pair.gates) {
-        if (g.passed) continue;
+    for (const g of this.gates) {
+      if (g.passed) continue;
 
-        ctx.save();
-        ctx.translate(g.x, pair.y);
+      ctx.save();
+      ctx.translate(g.x, g.y);
 
-        const isPositive = g.value >= 0;
-        const color = isPositive ? '#10b981' : '#ef4444'; // Green for positive, Red for negative
-        const label = isPositive ? `+${g.value}` : `${g.value}`;
+      const isPositive = g.value >= 0;
+      const color = isPositive ? '#10b981' : '#ef4444';
+      const label = isPositive ? `+${g.value}` : `${g.value}`;
 
-        // Gate Archway
-        ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)';
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
+      // Archway Box
+      ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
 
-        ctx.beginPath();
-        ctx.roundRect(-g.width / 2, -25, g.width, 50, 10);
-        ctx.fill();
-        ctx.stroke();
+      ctx.beginPath();
+      ctx.roundRect(-g.width / 2, -25, g.width, 50, 10);
+      ctx.fill();
+      ctx.stroke();
 
-        // Gate Pillar Posts
-        ctx.fillStyle = color;
-        ctx.fillRect(-g.width / 2, -25, 6, 50);
-        ctx.fillRect(g.width / 2 - 6, -25, 6, 50);
+      // Posts
+      ctx.fillStyle = color;
+      ctx.fillRect(-g.width / 2, -25, 6, 50);
+      ctx.fillRect(g.width / 2 - 6, -25, 6, 50);
 
-        // Gate Value Label
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '800 18px Outfit';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, 0, 0);
+      // Label
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 18px Outfit';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 0, -2);
 
-        // Gate Action Hint
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.font = '600 10px Outfit';
-        ctx.fillText('SHOOT TO INCREASE 🎯', 0, 16);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = '600 10px Outfit';
+      ctx.fillText('SHOOT TO BOOST 🎯', 0, 15);
 
-        ctx.restore();
-      }
+      ctx.restore();
     }
     ctx.restore();
   }
