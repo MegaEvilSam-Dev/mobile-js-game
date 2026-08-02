@@ -26,7 +26,6 @@ export class GateManager {
 
     if (!isFirstGate) {
       if (isSingleGate) {
-        // Single Gate occupying only 1 lane
         const lane = Math.floor(Math.random() * 2);
         const x = roadX + (lane * halfWidth) + (halfWidth / 2);
         const isNeg = Math.random() < 0.85; // 85% chance for Negative Gate!
@@ -44,11 +43,10 @@ export class GateManager {
           passed: false
         });
       } else {
-        // Gate Pair occupying both lanes
         const posLane = Math.floor(Math.random() * 2);
         for (let l = 0; l < 2; l++) {
           const x = roadX + (l * halfWidth) + (halfWidth / 2);
-          const isPos = (l === posLane) && (Math.random() < 0.35); // 85% negative across pair
+          const isPos = (l === posLane) && (Math.random() < 0.35);
           
           const op = isPos ? '+' : (Math.random() < 0.2 ? '÷' : '-');
           const val = isPos ? (Math.floor(Math.random() * 5) + 3) : (op === '÷' ? 2 : Math.floor(Math.random() * 10) + 5);
@@ -65,7 +63,6 @@ export class GateManager {
         }
       }
     } else {
-      // First Warm-Up Gate: Single Positive Gate (+4) in Lane 0
       const x = roadX + (halfWidth / 2);
       activeGates.push({
         lane: 0,
@@ -88,12 +85,14 @@ export class GateManager {
       pair.y += speed;
 
       for (const g of pair.gates) {
-        // Fireball hits dynamically upgrade gate value!
+        // Fireballs continue past gates! Piercing shot collision logic:
         for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
           const fb = dragonSquad.fireballs[j];
-          if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - pair.y) < 25) {
-            dragonSquad.fireballs.splice(j, 1);
-            
+          if (!fb.hitGates) fb.hitGates = new Set();
+
+          if (!fb.hitGates.has(g) && Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - pair.y) < 28) {
+            fb.hitGates.add(g); // Record hit so fireball continues traveling past gate!
+
             if (g.op === '+' || g.op === 'x') {
               g.val += 1;
             } else if (g.op === '-') {
