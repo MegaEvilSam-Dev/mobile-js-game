@@ -9,7 +9,7 @@ export class DragonBoss {
 
     this.x = canvasWidth / 2;
     this.y = -180;
-    this.targetY = 130;
+    this.targetY = 165; // Lower position so dragon is 100% visible below HUD
 
     this.wingAngle = 0;
     this.fireballs = [];
@@ -39,7 +39,7 @@ export class DragonBoss {
     this.maxHp = 100;
     this.x = this.canvasWidth / 2;
     this.y = -180;
-    this.targetY = 130;
+    this.targetY = 165;
     this.fireballs = [];
     this.projectiles = [];
     this.attackTimer = 0;
@@ -305,14 +305,14 @@ export class DragonBoss {
     // 5. Feedback Message Banner
     if (this.feedbackTimer > 0) {
       ctx.fillStyle = this.penaltyActive ? '#ef4444' : '#10b981';
-      ctx.font = '700 14px Outfit';
+      ctx.font = '700 13px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText(this.lastFeedbackMsg, this.canvasWidth / 2, 230);
+      ctx.fillText(this.lastFeedbackMsg, this.canvasWidth / 2, 260);
 
       if (this.penaltyActive) {
         ctx.fillStyle = '#f59e0b';
-        ctx.font = '600 13px Outfit';
-        ctx.fillText(`DODGE PENALTY: ${Math.ceil(this.penaltyTimer)}s REMAINING`, this.canvasWidth / 2, 250);
+        ctx.font = '600 12px Outfit';
+        ctx.fillText(`DODGE PENALTY: ${Math.ceil(this.penaltyTimer)}s REMAINING`, this.canvasWidth / 2, 278);
       }
     }
 
