@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Mobile, AL Pothole Panic: Moonpie Bayway Dash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Game Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Glassmorphic HUD Overlay -->
+      <div id="hud" class="hud-layer hidden">
+        <div class="hud-top-bar">
+          <div class="hud-card">
+            <span class="hud-label">BAYWAY POTHOLES</span>
+            <span id="hud-potholes" class="hud-value">0</span>
+            <span id="hud-next-milestone" class="hud-sub">/ 50 (Shop)</span>
+          </div>
+
+          <div class="hud-card moonpie-card">
+            <span class="hud-label">GOLDEN MOONPIES</span>
+            <div class="hud-value-row">
+              <span class="moonpie-icon">🥮</span>
+              <span id="hud-moonpies" class="hud-value">0</span>
+            </div>
+            <span id="hud-interval-moonpies" class="hud-sub">This interval: 0/3</span>
+          </div>
+
+          <div class="hud-card score-card">
+            <span class="hud-label">SCORE</span>
+            <span id="hud-score" class="hud-value">0000</span>
+          </div>
+
+          <button id="sound-toggle-btn" class="hud-icon-btn" title="Toggle Sound">🔊</button>
+        </div>
+
+        <!-- Active Power-ups Bar -->
+        <div id="powerup-status" class="powerup-bar"></div>
+
+        <!-- Boss Health Bar (Appears during Boss Fight) -->
+        <div id="boss-hud" class="boss-hud hidden">
+          <div class="boss-header">
+            <span class="boss-name">🐊 MOBILE DELTA GATOR-DRAGON BOSS 🐊</span>
+            <span id="boss-hp-text" class="boss-hp-text">100%</span>
+          </div>
+          <div class="boss-hp-track">
+            <div id="boss-hp-fill" class="boss-hp-fill" style="width: 100%;"></div>
+          </div>
+          <button id="throw-moonpie-btn" class="secondary-btn" style="padding: 8px; margin-top: 4px; font-size: 0.85rem;">🥮 THROW GOLDEN MOONPIE AT GATOR-DRAGON! (SPACE / TAP)</button>
+        </div>
+
+        <!-- Warning Flash Notification -->
+        <div id="warning-banner" class="warning-banner hidden">
+          <div class="warning-title">⚠️ DELTA GATOR-DRAGON ATTACK! ⚠️</div>
+          <div class="warning-sub">Dodge the Mobile Bay Fireballs!</div>
+        </div>
+      </div>
+
+      <!-- Start / Main Menu Overlay -->
+      <div id="menu-screen" class="overlay-screen">
+        <div class="menu-content glass-card">
+          <div class="game-badge">MOBILE, ALABAMA EDITION ⚜️</div>
+          <h1 class="game-title">MOBILE BAY<br><span class="highlight-text">POTHOLE PANIC</span></h1>
+          <p class="game-subtitle">Survive I-10 & Government Street • Grab Mobile's Famous Moonpies • Battle the Delta Gator-Dragon!</p>
+
+          <div class="instructions-card">
+            <div class="inst-item">
+              <span class="inst-icon">🕳️</span>
+              <span><strong>Dodge Potholes:</strong> Hitting a pothole ends your run!</span>
+            </div>
+            <div class="inst-item">
+              <span class="inst-icon">🥮</span>
+              <span><strong>Golden Moonpies:</strong> Collect up to 3 every 50 potholes.</span>
+            </div>
+            <div class="inst-item">
+              <span class="inst-icon">🛒</span>
+              <span><strong>Shop System:</strong> Buy shields & boosts every 50 potholes!</span>
+            </div>
+            <div class="inst-item">
+              <span class="inst-icon">🐉</span>
+              <span><strong>Dragon Boss:</strong> Fight the Dragon Boss every 100 potholes!</span>
+            </div>
+          </div>
+
+          <button id="start-btn" class="primary-btn">DRIVE & DASH ▶</button>
+          
+          <div class="controls-hint">
+            <span>📱 <strong>Mobile:</strong> Swipe Left/Right to change lanes | Swipe Up to Jump</span><br/>
+            <span>💻 <strong>Desktop:</strong> Left/Right Arrows or A/D | Spacebar to Jump</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shop Modal Overlay (Appears every 50 Potholes) -->
+      <div id="shop-screen" class="overlay-screen hidden">
+        <div class="shop-content glass-card">
+          <div class="shop-header">
+            <span class="shop-badge">GOVERNMENT ST. PITSTOP ⚜️</span>
+            <h2>🛒 MOBILE MOONPIE POWER-UP SHOP</h2>
+            <div class="shop-currency">
+              <span>Your Mobile Golden Moonpies:</span>
+              <span id="shop-moonpie-count" class="currency-val">0 🥮</span>
+            </div>
+          </div>
+
+          <div class="shop-grid">
+            <div class="shop-item" data-item="shield">
+              <div class="item-icon">🛡️</div>
+              <div class="item-info">
+                <h3>Pothole Repair Shield</h3>
+                <p>Absorbs 1 pothole crash cleanly.</p>
+              </div>
+              <button class="buy-btn" data-item="shield" data-cost="1">BUY (1 🥮)</button>
+            </div>
+
+            <div class="shop-item" data-item="magnet">
+              <div class="item-icon">🧲</div>
+              <div class="item-info">
+                <h3>Moonpie Magnet</h3>
+                <p>Attracts moonpies from adjacent lanes for 15s.</p>
+              </div>
+              <button class="buy-btn" data-item="magnet" data-cost="2">BUY (2 🥮)</button>
+            </div>
+
+            <div class="shop-item" data-item="jump">
+              <div class="item-icon">🚀</div>
+              <div class="item-info">
+                <h3>Hover Thruster</h3>
+                <p>Fly over potholes & hazards for 8s.</p>
+              </div>
+              <button class="buy-btn" data-item="jump" data-cost="2">BUY (2 🥮)</button>
+            </div>
+
+            <div class="shop-item" data-item="emp">
+              <div class="item-icon">💥</div>
+              <div class="item-info">
+                <h3>Dragon EMP Blaster</h3>
+                <p>Deals 40% instant damage to Dragon Bosses.</p>
+              </div>
+              <button class="buy-btn" data-item="emp" data-cost="3">BUY (3 🥮)</button>
+            </div>
+          </div>
+
+          <button id="resume-btn" class="secondary-btn">RESUME RUN ➔</button>
+        </div>
+      </div>
+
+      <!-- Game Over Overlay -->
+      <div id="gameover-screen" class="overlay-screen hidden">
+        <div class="gameover-content glass-card">
+          <div class="crash-icon">💥</div>
+          <h2>CRASHED IN A POTHOLE!</h2>
+          <p id="gameover-reason">You hit a giant road crater!</p>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">Potholes Dodged</span>
+              <span id="go-potholes" class="stat-val">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Golden Moonpies</span>
+              <span id="go-moonpies" class="stat-val">0 🥮</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Final Score</span>
+              <span id="go-score" class="stat-val">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">High Score</span>
+              <span id="go-highscore" class="stat-val">0</span>
+            </div>
+          </div>
+
+          <button id="restart-btn" class="primary-btn">TRY AGAIN ↺</button>
+        </div>
+      </div>
+
+      <!-- Mobile On-Screen Touch Controls -->
+      <div id="touch-controls" class="touch-controls-layer">
+        <button id="touch-left" class="touch-btn">◀</button>
+        <button id="touch-jump" class="touch-btn jump-btn">JUMP 🚀</button>
+        <button id="touch-right" class="touch-btn">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
