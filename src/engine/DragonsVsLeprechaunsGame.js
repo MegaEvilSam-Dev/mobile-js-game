@@ -1,7 +1,6 @@
 import { DragonSquad } from '../entities/DragonsVsLeprechauns/DragonSquad.js';
 import { LeprechaunManager } from '../entities/DragonsVsLeprechauns/Leprechaun.js';
 import { GateManager } from '../entities/DragonsVsLeprechauns/Gate.js';
-import { PowerUpManager } from '../entities/DragonsVsLeprechauns/PowerUp.js';
 import { ParticlePool } from '../entities/DragonsVsLeprechauns/ParticlePool.js';
 import { InputHandler } from './InputHandler.js';
 import { SoundSynth } from './SoundSynth.js';
@@ -13,7 +12,7 @@ export class DragonsVsLeprechaunsGame {
     this.onReturnMenu = onReturnMenu;
 
     this.state = 'RUNNING';
-    this.speed = 2.8; // Balanced warm-up speed
+    this.speed = 2.8;
     this.distance = 0;
     this.score = 0;
     this.enemiesDefeated = 0;
@@ -27,7 +26,6 @@ export class DragonsVsLeprechaunsGame {
     this.dragonSquad = new DragonSquad(this.width, this.height);
     this.leprechaunManager = new LeprechaunManager(this.width, this.height);
     this.gateManager = new GateManager(this.width, this.height);
-    this.powerUpManager = new PowerUpManager(this.width, this.height);
     this.particlePool = new ParticlePool(200);
     this.soundSynth = new SoundSynth();
 
@@ -44,7 +42,6 @@ export class DragonsVsLeprechaunsGame {
 
     this.spawnTimer = 0;
     this.gateTimer = 0;
-    this.powerUpTimer = 0;
     this.lastTime = performance.now();
 
     this.bindUI();
@@ -81,7 +78,6 @@ export class DragonsVsLeprechaunsGame {
     if (this.dragonSquad) this.dragonSquad.resize(this.width, this.height);
     if (this.leprechaunManager) this.leprechaunManager.resize(this.width, this.height);
     if (this.gateManager) this.gateManager.resize(this.width, this.height);
-    if (this.powerUpManager) this.powerUpManager.resize(this.width, this.height);
   }
 
   togglePause() {
@@ -103,7 +99,7 @@ export class DragonsVsLeprechaunsGame {
 
   spawnTrackBoss() {
     this.bossCount++;
-    const bossHp = 40 + (this.bossCount * 30);
+    const bossHp = 35 + (this.bossCount * 25); // Boss HP equals its attack damage on clash!
     this.leprechaunManager.spawnBoss(bossHp);
     this.soundSynth.playDragonRoar();
     this.particlePool.triggerShake(8, 0.4);
@@ -139,7 +135,7 @@ export class DragonsVsLeprechaunsGame {
     this.particlePool.update(dt);
     this.dragonSquad.update(dt);
 
-    // Update Enemy Mobs & Lane Bosses (Bosses continue attacking player every 0.45s until destroyed)
+    // Update Enemy Mobs & Lane Bosses (Boss Clash Damage = Current HP!)
     const isBossEngaged = this.leprechaunManager.update(
       dt,
       this.speed,
@@ -163,7 +159,6 @@ export class DragonsVsLeprechaunsGame {
         }
       },
       (boss) => {
-        // Boss Defeated! Resume runner progression!
         this.enemiesDefeated += 25;
         this.score += 5000;
         this.dragonSquad.addDragons(10);
@@ -172,10 +167,7 @@ export class DragonsVsLeprechaunsGame {
       }
     );
 
-    // If boss is engaged meeting player, pause forward track scrolling & spawner!
-    if (isBossEngaged) return;
-
-    // Track Distance & Speed Scaling (balanced 2.8 scaling to 4.2)
+    // Track Distance & Speed Scaling
     this.distance += dt * 32;
     this.score += dt * 20;
     this.speed = 2.8 + Math.min(1.4, (this.distance / 500) * 1.4);
@@ -186,7 +178,7 @@ export class DragonsVsLeprechaunsGame {
       this.spawnTrackBoss();
     }
 
-    // 1. Spawn Multiplier Gates
+    // 1. Spawn Multiplier Gates (Single Lane & Pairs, 85%+ Negative Gates)
     this.gateTimer += dt;
     if (this.gateTimer > 3.8) {
       const isFirst = (this.gateManager.gatePairs.length === 0 && this.distance < 40);
@@ -194,7 +186,7 @@ export class DragonsVsLeprechaunsGame {
       this.gateManager.spawnGatePair(this.dragonSquad.squadSize, isFirst);
     }
 
-    // 2. Spawn Enemy Mobs
+    // 2. Spawn Small Individual Enemy Mobs
     if (this.distance > 60) {
       this.spawnTimer += dt;
       const enemySpawnInterval = Math.max(1.4, 2.4 - (this.distance / 500) * 0.8);
@@ -203,21 +195,6 @@ export class DragonsVsLeprechaunsGame {
         this.leprechaunManager.spawnEnemyArmyMob(this.speed, this.distance);
       }
     }
-
-    // Spawn Power-Ups
-    this.powerUpTimer += dt;
-    if (this.powerUpTimer > 6.5) {
-      this.powerUpTimer = 0;
-      this.powerUpManager.spawnPowerUp(this.speed);
-    }
-
-    // Update Power-Ups
-    this.powerUpManager.update(this.speed, this.dragonSquad, (type) => {
-      this.dragonSquad.applyPowerUp(type);
-      this.soundSynth.playShopBuy();
-      this.particlePool.spawnExplosion(this.dragonSquad.x, this.dragonSquad.y, '#60a5fa', 12);
-      this.particlePool.spawnDamagePopup(this.dragonSquad.x, this.dragonSquad.y - 30, `+${type.toUpperCase()}`, '#60a5fa');
-    });
 
     // Update Multiplier Gates
     this.gateManager.update(this.speed, this.dragonSquad, this.particlePool, (gate) => {
@@ -261,14 +238,6 @@ export class DragonsVsLeprechaunsGame {
 
     const elScore = document.getElementById('hud-score');
     if (elScore) elScore.innerText = Math.round(this.score).toString().padStart(5, '0');
-
-    // Update Powerup Bar
-    let pillsHTML = '';
-    if (this.dragonSquad.shieldTimer > 0) pillsHTML += `<div class="powerup-pill">🛡️ SHIELD (${Math.ceil(this.dragonSquad.shieldTimer)}s)</div>`;
-    if (this.dragonSquad.multiFireTimer > 0) pillsHTML += `<div class="powerup-pill">🔥 MULTI-FIRE (${Math.ceil(this.dragonSquad.multiFireTimer)}s)</div>`;
-    if (this.dragonSquad.speedShootTimer > 0) pillsHTML += `<div class="powerup-pill">⚡ SPEED-SHOOT (${Math.ceil(this.dragonSquad.speedShootTimer)}s)</div>`;
-    const pBar = document.getElementById('powerup-bar');
-    if (pBar) pBar.innerHTML = pillsHTML;
   }
 
   draw() {
@@ -298,7 +267,6 @@ export class DragonsVsLeprechaunsGame {
 
     // Render Entities
     this.gateManager.draw(this.ctx);
-    this.powerUpManager.draw(this.ctx);
     this.leprechaunManager.draw(this.ctx);
     this.dragonSquad.draw(this.ctx);
     this.particlePool.draw(this.ctx);
