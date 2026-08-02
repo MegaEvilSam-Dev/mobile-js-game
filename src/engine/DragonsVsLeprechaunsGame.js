@@ -15,8 +15,8 @@ export class DragonsVsLeprechaunsGame {
     this.width = canvas.clientWidth;
     this.height = canvas.clientHeight;
 
-    this.state = 'RUNNING'; // RUNNING, BOSS_ARENA, GAMEOVER, VICTORY
-    this.speed = 4.2;
+    this.state = 'RUNNING';
+    this.speed = 3.6; // Comfortable cruising speed
     this.distance = 0;
     this.score = 0;
     this.enemiesDefeated = 0;
@@ -89,8 +89,8 @@ export class DragonsVsLeprechaunsGame {
 
   triggerBossArenaPhase() {
     this.state = 'BOSS_ARENA';
-    this.dragonSquad.isBossBreathAttack = true; // Accelerated Full-Power Breath Attack State!
-    this.leprechaunManager.spawnBoss(250);
+    this.dragonSquad.isBossBreathAttack = true;
+    this.leprechaunManager.spawnBoss(80); // Rebalanced Boss HP to 80 for fun, epic victory!
     this.soundSynth.playDragonRoar();
     this.particlePool.triggerShake(8, 0.4);
   }
@@ -129,7 +129,7 @@ export class DragonsVsLeprechaunsGame {
     this.particlePool.update(dt);
     this.dragonSquad.update(dt);
 
-    // --- BOSS ARENA PHASE UPDATE ---
+    // --- BOSS ARENA PHASE ---
     if (this.state === 'BOSS_ARENA') {
       this.leprechaunManager.update(
         0,
@@ -143,33 +143,33 @@ export class DragonsVsLeprechaunsGame {
       return;
     }
 
-    // --- TRACK RUNNER PHASE UPDATE ---
-    this.distance += dt * 30;
+    // --- TRACK RUNNER PHASE ---
+    this.distance += dt * 35;
     this.score += dt * 25;
 
-    // Check Distance Threshold for Boss Arena Transition (at 500m)
-    if (this.distance >= 500) {
+    // Quick Boss Route: Transition to Boss Arena at 250m!
+    if (this.distance >= 250) {
       this.triggerBossArenaPhase();
       return;
     }
 
-    // Spawn Enemy Army Mobs
+    // Spawn Enemy Mobs
     this.spawnTimer += dt;
-    if (this.spawnTimer > 1.8) {
+    if (this.spawnTimer > 2.0) {
       this.spawnTimer = 0;
       this.leprechaunManager.spawnEnemyArmyMob(this.speed);
     }
 
-    // Spawn Multiplier Gate Pairs
+    // Spawn Multiplier Gates
     this.gateTimer += dt;
-    if (this.gateTimer > 4.5) {
+    if (this.gateTimer > 4.2) {
       this.gateTimer = 0;
       this.gateManager.spawnGatePair(this.dragonSquad.squadSize);
     }
 
-    // Spawn Shiny Power-Up Loot
+    // Spawn Power-Ups
     this.powerUpTimer += dt;
-    if (this.powerUpTimer > 7.0) {
+    if (this.powerUpTimer > 6.0) {
       this.powerUpTimer = 0;
       this.powerUpManager.spawnPowerUp(this.speed);
     }
@@ -182,13 +182,13 @@ export class DragonsVsLeprechaunsGame {
       this.particlePool.spawnDamagePopup(this.dragonSquad.x, this.dragonSquad.y - 30, `+${type.toUpperCase()}`, '#60a5fa');
     });
 
-    // Update Enemy Army Mobs & Mass Clashing
+    // Update Enemy Mobs
     this.leprechaunManager.update(
       this.speed,
       this.dragonSquad,
       this.particlePool,
       (mob) => {
-        this.enemiesDefeated += mob.mobSize || 15;
+        this.enemiesDefeated += mob.mobSize || 10;
         this.score += 500;
         this.soundSynth.playMoonpieChime();
       },
@@ -231,10 +231,10 @@ export class DragonsVsLeprechaunsGame {
       this.gameOver('All dragons eliminated!');
     }
 
-    // Update HUD & Evolution Display
+    // Update HUD
     const evo = this.dragonSquad.getEvolutionTier();
     document.getElementById('hud-potholes').innerText = this.enemiesDefeated;
-    document.getElementById('hud-next-milestone').innerText = `(${Math.round(500 - this.distance)}m to Boss)`;
+    document.getElementById('hud-next-milestone').innerText = `(${Math.max(0, Math.round(250 - this.distance))}m to Boss)`;
     document.getElementById('hud-moonpies').innerText = `${this.dragonSquad.squadSize} 🐉`;
     if (document.getElementById('hud-ammo-count')) {
       document.getElementById('hud-ammo-count').innerText = evo.name;

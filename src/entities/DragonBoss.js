@@ -35,8 +35,8 @@ export class DragonBoss {
 
   spawn() {
     this.active = true;
-    this.hp = 100;
-    this.maxHp = 100;
+    this.maxHp = 40;
+    this.hp = 40;
     this.x = this.canvasWidth / 2;
     this.y = -180;
     this.targetY = 165;
