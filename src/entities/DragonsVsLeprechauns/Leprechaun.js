@@ -25,7 +25,7 @@ export class LeprechaunManager {
     this.bosses = [];
   }
 
-  // Spawn Leprechaun Army Mobs & Individual Enemies (No Coins!)
+  // Spawn Leprechaun Army Mobs & Individual Enemies
   spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -81,7 +81,7 @@ export class LeprechaunManager {
       maxHp: hp,
       size: 70,
       active: true,
-      isEngaged: false
+      passed: false
     });
   }
 
@@ -91,24 +91,7 @@ export class LeprechaunManager {
     // 1. Update Lane Bosses
     for (let i = this.bosses.length - 1; i >= 0; i--) {
       const boss = this.bosses[i];
-
-      if (!boss.isEngaged && Math.abs(boss.y - dragonSquad.y) < 45 && boss.lane === dragonSquad.lane) {
-        boss.isEngaged = true;
-
-        // BOSS CLASH DAMAGE EQUALS CURRENT HP!
-        const damage = Math.max(1, Math.round(boss.hp));
-        dragonSquad.removeDragons(damage);
-
-        particlePool.triggerShake(10, 0.4);
-        particlePool.spawnExplosion(boss.x, boss.y, '#ef4444', 25);
-        particlePool.spawnDamagePopup(dragonSquad.x, dragonSquad.y - 35, `-${damage} 🐉`, '#ef4444');
-
-        onBossDefeated(boss);
-        this.bosses.splice(i, 1);
-        continue;
-      } else {
-        boss.y += speed * 0.45;
-      }
+      boss.y += speed * 0.6; // Smooth downward movement along the track
 
       // Fireball hits on Boss
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
@@ -128,6 +111,23 @@ export class LeprechaunManager {
             break;
           }
         }
+      }
+
+      if (i >= this.bosses.length) continue;
+
+      // WHEN A BOSS GETS PASSED THE DRAGON, THE DAMAGE DEALT IS THE ENEMY'S CURRENT HP!
+      if (!boss.passed && boss.y >= dragonSquad.y - 15) {
+        boss.passed = true;
+        const damage = Math.max(1, Math.round(boss.hp));
+        dragonSquad.removeDragons(damage);
+
+        particlePool.triggerShake(10, 0.4);
+        particlePool.spawnExplosion(boss.x, boss.y, '#ef4444', 25);
+        particlePool.spawnDamagePopup(dragonSquad.x, dragonSquad.y - 35, `-${damage} 🐉`, '#ef4444');
+
+        onBossDefeated(boss);
+        this.bosses.splice(i, 1);
+        continue;
       }
 
       if (boss.y > this.canvasHeight + 120) {
