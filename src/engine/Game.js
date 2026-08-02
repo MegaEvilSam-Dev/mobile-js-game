@@ -47,23 +47,27 @@ export class Game {
 
     const btnThrow = document.getElementById('throw-moonpie-btn');
     if (btnThrow) {
-      btnThrow.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.handleThrowMoonpie();
-      });
+      btnThrow.onclick = (e) => {
+        try {
+          if (e) e.stopPropagation();
+          this.handleThrowMoonpie();
+        } catch (err) {}
+      };
     }
 
     this.input = new InputHandler(
-      () => this.player.moveLeft(),
-      () => this.player.moveRight(),
+      () => { try { if (this.player) this.player.moveLeft(); } catch (err) {} },
+      () => { try { if (this.player) this.player.moveRight(); } catch (err) {} },
       () => {
-        if (this.state === 'BOSS_FIGHT') {
-          this.handleThrowMoonpie();
-        } else {
-          this.player.jump();
-        }
+        try {
+          if (this.state === 'BOSS_FIGHT') {
+            this.handleThrowMoonpie();
+          } else if (this.player) {
+            this.player.jump();
+          }
+        } catch (err) {}
       },
-      () => this.togglePause()
+      () => { try { this.togglePause(); } catch (err) {} }
     );
 
     this.lastTime = 0;
@@ -71,6 +75,12 @@ export class Game {
 
     this.resize();
     window.addEventListener('resize', () => this.resize());
+  }
+
+  destroy() {
+    try {
+      if (this.input) this.input.destroy();
+    } catch (err) {}
   }
 
   togglePause() {
@@ -282,9 +292,7 @@ export class Game {
         (bonusPts) => {
           this.score += bonusPts;
         },
-        () => {
-          // Miss penalty
-        },
+        () => {},
         this.soundSynth
       );
 
@@ -340,6 +348,7 @@ export class Game {
   }
 
   run(time = 0) {
+    if (this.state === 'GAMEOVER') return;
     const dt = Math.min((time - this.lastTime) / 1000, 0.1);
     this.lastTime = time;
 

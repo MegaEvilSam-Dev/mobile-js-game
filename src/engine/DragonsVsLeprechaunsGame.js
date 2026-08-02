@@ -25,10 +25,10 @@ export class DragonsVsLeprechaunsGame {
     this.soundSynth = new SoundSynth();
 
     this.input = new InputHandler(
-      () => this.dragonSquad.moveLeft(),
-      () => this.dragonSquad.moveRight(),
+      () => { try { if (this.dragonSquad) this.dragonSquad.moveLeft(); } catch (err) {} },
+      () => { try { if (this.dragonSquad) this.dragonSquad.moveRight(); } catch (err) {} },
       () => {},
-      () => this.togglePause()
+      () => { try { this.togglePause(); } catch (err) {} }
     );
 
     this.spawnTimer = 0;
@@ -37,6 +37,12 @@ export class DragonsVsLeprechaunsGame {
 
     this.bindUI();
     this.resize();
+  }
+
+  destroy() {
+    try {
+      if (this.input) this.input.destroy();
+    } catch (err) {}
   }
 
   bindUI() {
@@ -94,43 +100,36 @@ export class DragonsVsLeprechaunsGame {
     this.score += dt * 15;
     this.dragonSquad.update(dt, this.soundSynth);
 
-    // Spawn More Enemies (Every 0.65s!)
     this.spawnTimer += dt;
     if (this.spawnTimer > 0.65) {
       this.spawnTimer = 0;
       this.leprechaunManager.spawnLeprechaun(this.speed);
     }
 
-    // Spawn Fewer Staggered Gates (Every 5.5s)
     this.gateTimer += dt;
     if (this.gateTimer > 5.5) {
       this.gateTimer = 0;
       this.gateManager.spawnSingleStaggeredGate();
     }
 
-    // Update Leprechauns
     this.leprechaunManager.update(
       this.speed,
       this.dragonSquad,
       (lep) => {
-        // Eliminated enemy
         this.leprechaunsEliminated++;
         this.score += 200;
         this.soundSynth.playMoonpieChime();
       },
       (escapedLep) => {
-        // ESCAPED ENEMY -> -1 to player dragon total!
         this.dragonSquad.removeDragons(1);
         this.soundSynth.playPotholeCrash();
 
-        // If reduced to 0 dragons -> END OF GAME!
         if (this.dragonSquad.dragonCount <= 0) {
           this.gameOver('Leprechauns escaped! All dragons lost!');
         }
       }
     );
 
-    // Update Gates
     this.gateManager.update(this.speed, this.dragonSquad, (gateValue) => {
       if (gateValue >= 0) {
         this.dragonSquad.addDragons(gateValue);
@@ -145,12 +144,10 @@ export class DragonsVsLeprechaunsGame {
       }
     });
 
-    // Check 0 dragons game over
     if (this.dragonSquad.dragonCount <= 0 && this.state !== 'GAMEOVER') {
       this.gameOver('All dragons eliminated!');
     }
 
-    // Update HUD
     document.getElementById('hud-potholes').innerText = this.leprechaunsEliminated;
     document.getElementById('hud-next-milestone').innerText = '(Leprechauns)';
     document.getElementById('hud-moonpies').innerText = this.dragonSquad.dragonCount;
@@ -163,7 +160,6 @@ export class DragonsVsLeprechaunsGame {
   draw() {
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // 2-Lane Highway Background
     this.ctx.fillStyle = '#0f172a';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
@@ -172,7 +168,6 @@ export class DragonsVsLeprechaunsGame {
     this.ctx.fillStyle = '#1e293b';
     this.ctx.fillRect(roadX, 0, roadWidth, this.height);
 
-    // Center Lane Divider
     this.ctx.strokeStyle = '#f59e0b';
     this.ctx.lineWidth = 4;
     this.ctx.setLineDash([35, 35]);
@@ -182,13 +177,13 @@ export class DragonsVsLeprechaunsGame {
     this.ctx.stroke();
     this.ctx.setLineDash([]);
 
-    // Entities
     this.gateManager.draw(this.ctx);
     this.leprechaunManager.draw(this.ctx);
     this.dragonSquad.draw(this.ctx);
   }
 
   run(time = 0) {
+    if (this.state === 'GAMEOVER') return;
     const dt = Math.min((time - this.lastTime) / 1000, 0.1);
     this.lastTime = time;
 
