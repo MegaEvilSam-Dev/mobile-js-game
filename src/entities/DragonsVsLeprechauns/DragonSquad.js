@@ -14,7 +14,7 @@ export class DragonSquad {
     this.fireballs = [];
     this.shootTimer = 0;
 
-    // Power-Up Buff Timers (10s duration)
+    // Power-Up Buff Timers
     this.shieldTimer = 0;
     this.multiFireTimer = 0;
     this.speedShootTimer = 0;
@@ -29,6 +29,11 @@ export class DragonSquad {
     this.canvasHeight = height;
     this.y = height - 160;
     this.updatePosition(true);
+  }
+
+  setTargetX(mouseX) {
+    const margin = 50;
+    this.targetX = Math.max(margin, Math.min(this.canvasWidth - margin, mouseX));
   }
 
   updatePosition(immediate = false) {
@@ -78,7 +83,6 @@ export class DragonSquad {
     if (type === 'speedshoot') this.speedShootTimer = 10;
   }
 
-  // Dragon Evolution Tier (Hatchling -> Drake -> Ancient Dragon)
   getEvolutionTier() {
     if (this.squadSize >= 25) return { name: 'ANCIENT DRAGON', scale: 1.4, color: '#f59e0b', body: '#047857' };
     if (this.squadSize >= 10) return { name: 'DRAKE DRAGON', scale: 1.2, color: '#10b981', body: '#065f46' };
@@ -103,8 +107,8 @@ export class DragonSquad {
   }
 
   update(dt) {
-    // Smooth horizontal steering
-    this.x += (this.targetX - this.x) * 0.25;
+    // Smooth Lerp Steering to Target X
+    this.x += (this.targetX - this.x) * 0.28;
 
     // Update Buff Timers
     if (this.shieldTimer > 0) this.shieldTimer -= dt;
@@ -115,32 +119,31 @@ export class DragonSquad {
     for (const unit of this.units) {
       const targetUnitX = this.x + unit.offsetX;
       const targetUnitY = this.y + unit.offsetY;
-      unit.currX += (targetUnitX - unit.currX) * 0.3;
-      unit.currY += (targetUnitY - unit.currY) * 0.3;
+      unit.currX += (targetUnitX - unit.currX) * 0.35;
+      unit.currY += (targetUnitY - unit.currY) * 0.35;
     }
 
     // Auto Fireball System
     this.shootTimer += dt;
-    let baseCooldown = Math.max(0.08, 0.3 - (Math.min(20, this.squadSize) * 0.01));
-    if (this.speedShootTimer > 0) baseCooldown /= 2; // Speed-Shoot Buff doubles rate of fire!
-    if (this.isBossBreathAttack) baseCooldown = 0.05; // Full-Power Breath Attack State!
+    let baseCooldown = Math.max(0.08, 0.28 - (Math.min(20, this.squadSize) * 0.01));
+    if (this.speedShootTimer > 0) baseCooldown /= 2;
+    if (this.isBossBreathAttack) baseCooldown = 0.04;
 
     if (this.shootTimer > baseCooldown) {
       this.shootTimer = 0;
 
-      const numShooters = Math.min(10, Math.max(1, Math.floor(this.squadSize / 2)));
+      const numShooters = Math.min(12, Math.max(1, Math.floor(this.squadSize / 2)));
       for (let i = 0; i < numShooters; i++) {
         const u = this.units[i % this.units.length];
         const fx = u ? u.currX : this.x;
         const fy = u ? u.currY : this.y;
 
         if (this.multiFireTimer > 0) {
-          // Multi-Fire Buff: 3 Stream Spread!
-          this.fireballs.push({ x: fx, y: fy - 15, vx: -3, vy: -15, radius: 6 });
-          this.fireballs.push({ x: fx, y: fy - 15, vx: 0, vy: -15, radius: 6 });
-          this.fireballs.push({ x: fx, y: fy - 15, vx: 3, vy: -15, radius: 6 });
+          this.fireballs.push({ x: fx, y: fy - 15, vx: -3, vy: -16, radius: 6 });
+          this.fireballs.push({ x: fx, y: fy - 15, vx: 0, vy: -16, radius: 6 });
+          this.fireballs.push({ x: fx, y: fy - 15, vx: 3, vy: -16, radius: 6 });
         } else {
-          this.fireballs.push({ x: fx, y: fy - 15, vx: 0, vy: -15, radius: 6 });
+          this.fireballs.push({ x: fx, y: fy - 15, vx: 0, vy: -16, radius: 6 });
         }
       }
     }
@@ -149,7 +152,7 @@ export class DragonSquad {
     for (let i = this.fireballs.length - 1; i >= 0; i--) {
       const fb = this.fireballs[i];
       fb.x += (fb.vx || 0);
-      fb.y += (fb.vy || -15);
+      fb.y += (fb.vy || -16);
       if (fb.y < -40 || fb.x < -20 || fb.x > this.canvasWidth + 20) {
         this.fireballs.splice(i, 1);
       }
@@ -182,7 +185,6 @@ export class DragonSquad {
     ctx.translate(this.x, this.y);
     ctx.scale(evo.scale, evo.scale);
 
-    // Shield Energy Bubble Visual
     if (this.shieldTimer > 0) {
       ctx.strokeStyle = '#60a5fa';
       ctx.lineWidth = 4;
@@ -193,7 +195,6 @@ export class DragonSquad {
       ctx.stroke();
     }
 
-    // Ancient Dragon Crown / Flame Aura
     if (this.squadSize >= 25) {
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath();

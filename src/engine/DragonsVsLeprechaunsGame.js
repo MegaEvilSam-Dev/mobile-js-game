@@ -33,7 +33,8 @@ export class DragonsVsLeprechaunsGame {
       () => { try { if (this.dragonSquad) this.dragonSquad.moveLeft(); } catch (err) {} },
       () => { try { if (this.dragonSquad) this.dragonSquad.moveRight(); } catch (err) {} },
       () => {},
-      () => { try { this.togglePause(); } catch (err) {} }
+      () => { try { this.togglePause(); } catch (err) {} },
+      (mouseX) => { try { if (this.dragonSquad) this.dragonSquad.setTargetX(mouseX); } catch (err) {} }
     );
 
     this.spawnTimer = 0;
