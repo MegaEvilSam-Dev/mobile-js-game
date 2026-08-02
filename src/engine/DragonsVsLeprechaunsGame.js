@@ -115,11 +115,11 @@ export class DragonsVsLeprechaunsGame {
       this.leprechaunManager.spawnMiniBoss(this.speed);
     }
 
-    // Spawn Single Staggered Negative Gates (Every 5.0s)
+    // Spawn Single Staggered Negative Gates (Balanced against current dragon count)
     this.gateTimer += dt;
     if (this.gateTimer > 5.0) {
       this.gateTimer = 0;
-      this.gateManager.spawnSingleStaggeredGate();
+      this.gateManager.spawnSingleStaggeredGate(this.dragonSquad.dragonCount);
     }
 
     // Update Leprechauns & Mini-Bosses
@@ -127,20 +127,17 @@ export class DragonsVsLeprechaunsGame {
       this.speed,
       this.dragonSquad,
       (lep) => {
-        // Basic enemy eliminated
         this.leprechaunsEliminated++;
         this.score += 200;
         this.soundSynth.playMoonpieChime();
       },
       (miniBoss) => {
-        // MINI-BOSS ELIMINATED -> +1500 PTS & +3 MINI DRAGONS!
         this.leprechaunsEliminated += 5;
         this.score += 1500;
-        this.dragonSquad.addDragons(3);
+        this.dragonSquad.addDragons(2);
         this.soundSynth.playShopBuy();
       },
       (penalty) => {
-        // ESCAPED ENEMY -> -1 to player dragon total!
         this.dragonSquad.removeDragons(penalty);
         this.soundSynth.playPotholeCrash();
 
@@ -150,10 +147,21 @@ export class DragonsVsLeprechaunsGame {
       }
     );
 
-    // Update Negative/Positive Gates
+    // Update Negative/Positive Gates (Balanced flock addition & cap)
     this.gateManager.update(this.speed, this.dragonSquad, (gateValue) => {
       if (gateValue >= 0) {
-        this.dragonSquad.addDragons(gateValue);
+        const maxCap = 12;
+        const current = this.dragonSquad.dragonCount;
+        const newTotal = Math.min(maxCap, current + gateValue);
+        const addedDragons = newTotal - current;
+        const overflowDragons = gateValue - addedDragons;
+
+        if (addedDragons > 0) {
+          this.dragonSquad.addDragons(addedDragons);
+        }
+        if (overflowDragons > 0) {
+          this.score += overflowDragons * 500; // Bonus points for capped dragons!
+        }
         this.soundSynth.playShopBuy();
       } else {
         this.dragonSquad.removeDragons(Math.abs(gateValue));
