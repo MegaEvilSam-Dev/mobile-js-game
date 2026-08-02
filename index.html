@@ -6,7 +6,7 @@
   <title>Mobile Bay Arcade Runner ⚜️</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -68,72 +68,78 @@
         <button id="touch-right" class="touch-btn">▶</button>
       </div>
 
-      <!-- Start / Main Menu Overlay with Game Selection Menu -->
+      <!-- Ultra Clean & Stylish Game Selection Screen -->
       <div id="menu-screen" class="overlay-screen">
-        <div class="menu-content glass-card">
-          <div class="game-badge">SELECT GAME MODE 🎮</div>
-          <h1 class="game-title">MOBILE BAY<br><span class="highlight-text">ARCADE RUNNER</span></h1>
+        <div class="menu-card glass-card">
+          <div class="menu-header">
+            <div class="badge-pill">⚜️ SELECT GAME MODE ⚜️</div>
+            <h1 class="main-title">MOBILE BAY<br><span class="gradient-text">ARCADE RUNNER</span></h1>
+          </div>
 
-          <!-- Game Mode Selector Tabs -->
-          <div class="mode-selector-grid">
-            <button id="mode-potholes-btn" class="mode-tab-btn active" data-mode="potholes">
-              <span>🥮 MODE 1: POTHOLE PANIC</span>
-              <small>Dodge craters • Collect Moonpies • Battle Dragon</small>
+          <!-- Game Mode Selector Grid -->
+          <div class="mode-grid">
+            <button id="mode-potholes-btn" class="mode-card active" data-mode="potholes">
+              <div class="mode-card-header">
+                <span class="mode-icon">🥮</span>
+                <div class="mode-title-group">
+                  <span class="mode-tag">MODE 1</span>
+                  <span class="mode-name">Pothole Panic</span>
+                </div>
+              </div>
+              <p class="mode-desc">Dodge highway craters • Collect Golden Moonpie Ammo • Battle Gator-Dragon Boss</p>
             </button>
-            <button id="mode-dragons-btn" class="mode-tab-btn" data-mode="dragons">
-              <span>🐉 MODE 2: DRAGONS VS LEPRECHAUNS</span>
-              <small>Dynamic Math Gates • Trailing Dragon Squad</small>
+
+            <button id="mode-dragons-btn" class="mode-card" data-mode="dragons">
+              <div class="mode-card-header">
+                <span class="mode-icon">🐉</span>
+                <div class="mode-title-group">
+                  <span class="mode-tag">MODE 2</span>
+                  <span class="mode-name">Dragons vs Leprechauns</span>
+                </div>
+              </div>
+              <p class="mode-desc">Dynamic Math Multiplier Gates • Trailing Dragon Squad • Lane-Bound Boss Fights</p>
             </button>
           </div>
 
-          <!-- Mode 1 Instructions Card -->
-          <div id="inst-potholes" class="instructions-card">
-            <div class="inst-item">
-              <span class="inst-icon">🕳️</span>
-              <span><strong>Dodge Potholes:</strong> Dodge craters at comfortable highway speeds!</span>
+          <!-- Active Mode Feature Instructions -->
+          <div id="inst-potholes" class="feature-box">
+            <div class="feature-row">
+              <span class="feature-emoji">🕳️</span>
+              <span><strong>Dodge Potholes:</strong> Switch lanes at smooth highway speeds!</span>
             </div>
-            <div class="inst-item">
-              <span class="inst-icon">🥮</span>
-              <span><strong>Moonpie Ammo:</strong> Each Golden Moonpie grants <strong>10 Ammo Shots</strong>!</span>
-            </div>
-            <div class="inst-item">
-              <span class="inst-icon">🐊</span>
-              <span><strong>Quick Boss Routes:</strong> 1st Gator-Dragon Boss arrives at <strong>25 Potholes</strong>!</span>
+            <div class="feature-row">
+              <span class="feature-emoji">🥮</span>
+              <span><strong>Moonpie Ammo:</strong> Golden Moonpies grant <strong>10 Ammo Shots</strong>!</span>
             </div>
           </div>
 
-          <!-- Mode 2 Instructions Card -->
-          <div id="inst-dragons" class="instructions-card hidden">
-            <div class="inst-item">
-              <span class="inst-icon">☘️</span>
-              <span><strong>Shoot Leprechauns:</strong> Dragon automatically fires fireball salvoes!</span>
+          <div id="inst-dragons" class="feature-box hidden">
+            <div class="feature-row">
+              <span class="feature-emoji">🎯</span>
+              <span><strong>Multiplier Gates:</strong> Shoot (+, x) gates to multiply your Dragon Squad!</span>
             </div>
-            <div class="inst-item">
-              <span class="inst-icon">🎯</span>
-              <span><strong>Dynamic Math Gates:</strong> Shoot gates (+, x, -, ÷) to boost your squad!</span>
-            </div>
-            <div class="inst-item">
-              <span class="inst-icon">🐉</span>
-              <span><strong>Trailing Squad:</strong> Multiplier gates spawn trailing mini dragons!</span>
+            <div class="feature-row">
+              <span class="feature-emoji">👑</span>
+              <span><strong>Lane Bosses:</strong> Face Lane-Bound Leprechaun Kings in epic battles!</span>
             </div>
           </div>
 
-          <button id="start-btn" class="primary-btn">DRIVE & DASH ▶</button>
+          <!-- Play Action Button -->
+          <button id="start-btn" class="play-btn">START RUN ▶</button>
           
-          <div class="controls-hint">
-            <span>💻 Desktop: <strong>A/D or Drag Mouse</strong> • <strong>P</strong> Pause</span>
-            <span>📱 Mobile: <strong>Touch Drag</strong> to Move • <strong>Tap Screen</strong> to Fire</span>
+          <div class="control-footer">
+            <span>💻 Mouse / A & D to Steering • 📱 Touch Drag for Smooth Steering</span>
           </div>
         </div>
       </div>
 
-      <!-- Pause Screen Modal with Return to Game Selection -->
+      <!-- Pause Screen Modal -->
       <div id="pause-screen" class="overlay-screen hidden">
-        <div class="menu-content glass-card">
+        <div class="menu-card glass-card">
           <h2 class="menu-subtitle">GAME PAUSED ⏸️</h2>
           <p class="inst-text">Take a breather on the I-10 Bayway!</p>
           <div class="button-group">
-            <button id="pause-resume-btn" class="primary-btn">RESUME RUN ▶</button>
+            <button id="pause-resume-btn" class="play-btn">RESUME RUN ▶</button>
             <button id="pause-menu-btn" class="secondary-btn">MAIN MENU 🏠</button>
           </div>
         </div>
@@ -188,14 +194,14 @@
             </div>
           </div>
 
-          <button id="shop-resume-btn" class="primary-btn">CONTINUE RUN ▶</button>
+          <button id="shop-resume-btn" class="play-btn">CONTINUE RUN ▶</button>
         </div>
       </div>
 
-      <!-- Game Over Modal with Return to Game Selection -->
+      <!-- Game Over Modal -->
       <div id="gameover-screen" class="overlay-screen hidden">
-        <div class="menu-content glass-card">
-          <h2 class="game-title error-text">RUN OVER! 💥</h2>
+        <div class="menu-card glass-card">
+          <h2 class="main-title error-text">RUN OVER! 💥</h2>
           <p id="gameover-reason" class="game-subtitle">Crushed in a pothole!</p>
 
           <div class="score-card">
@@ -214,7 +220,7 @@
           </div>
 
           <div class="button-group">
-            <button id="restart-btn" class="primary-btn">PLAY AGAIN 🔄</button>
+            <button id="restart-btn" class="play-btn">PLAY AGAIN 🔄</button>
             <button id="go-menu-btn" class="secondary-btn">MAIN MENU 🏠</button>
           </div>
         </div>

@@ -1,12 +1,12 @@
 :root {
   --font-heading: 'Outfit', sans-serif;
-  --font-retro: 'Press Start 2P', monospace;
   
   --bg-dark: #090d16;
-  --panel-bg: rgba(15, 23, 42, 0.88);
+  --panel-bg: rgba(15, 23, 42, 0.92);
   --panel-border: rgba(255, 255, 255, 0.12);
   
   --accent-amber: #f59e0b;
+  --accent-amber-glow: rgba(245, 158, 11, 0.25);
   --accent-blue: #38bdf8;
   --accent-emerald: #10b981;
   --accent-rose: #ef4444;
@@ -34,14 +34,6 @@ html, body {
   color: var(--text-main);
 }
 
-#app {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 #canvas-container {
   position: relative;
   width: 100vw;
@@ -51,6 +43,7 @@ html, body {
   background: #090d16;
   overflow: hidden;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+  margin: 0 auto;
 }
 
 @media (min-width: 601px) {
@@ -70,13 +63,211 @@ html, body {
 .glass-card {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
 }
 
-/* Sleek Non-Obstructive Top HUD Container */
+/* Overlay Screens */
+.overlay-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background: rgba(9, 13, 22, 0.94);
+}
+
+.overlay-screen.hidden, .hud-container.hidden, .boss-hud.hidden, .warning-banner.hidden {
+  display: none !important;
+}
+
+.menu-card, .shop-content {
+  width: 100%;
+  max-width: 440px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.menu-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--accent-amber);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.main-title {
+  font-weight: 900;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Stylish Mode Selection Grid */
+.mode-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mode-card {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1.5px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mode-icon {
+  font-size: 1.4rem;
+}
+
+.mode-title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.mode-tag {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+
+.mode-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.mode-desc {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.mode-card.active {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 20px var(--accent-amber-glow);
+}
+
+.mode-card.active .mode-name {
+  color: var(--accent-amber);
+}
+
+.mode-card.active .mode-desc {
+  color: #cbd5e1;
+}
+
+/* Feature Instructions Box */
+.feature-box {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+
+.feature-emoji {
+  font-size: 1.05rem;
+}
+
+/* Stylish Buttons */
+.play-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #0f172a;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.play-btn:active {
+  transform: scale(0.98);
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #f8fafc;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.secondary-btn:hover, .secondary-btn:active {
+  background: rgba(51, 65, 85, 0.95);
+}
+
+.control-footer {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Sleek Top HUD Header */
 .hud-container {
   position: absolute;
   top: 10px;
@@ -93,12 +284,12 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.88);
   border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  padding: 6px 12px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: 14px;
+  padding: 6px 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
@@ -126,11 +317,6 @@ html, body {
   line-height: 1.0;
 }
 
-.hud-sub {
-  font-size: 0.55rem;
-  color: var(--text-muted);
-}
-
 .hud-btn {
   pointer-events: auto;
   background: rgba(255, 255, 255, 0.08);
@@ -146,92 +332,7 @@ html, body {
   justify-content: center;
 }
 
-/* Button Group Layout for Modals */
-.button-group {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.primary-btn {
-  width: 100%;
-  padding: 12px;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #0f172a;
-  background: var(--accent-amber);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 0.1s ease-out;
-}
-
-.primary-btn:active {
-  transform: scale(0.98);
-}
-
-.secondary-btn {
-  width: 100%;
-  padding: 10px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #f8fafc;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s ease-out;
-}
-
-.secondary-btn:hover, .secondary-btn:active {
-  background: rgba(51, 65, 85, 0.95);
-}
-
-/* Mode Selector Tabs */
-.mode-selector-grid {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mode-tab-btn {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  color: var(--text-muted);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  cursor: pointer;
-  transition: all 0.15s ease-out;
-}
-
-.mode-tab-btn span {
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.mode-tab-btn small {
-  font-size: 0.65rem;
-  color: #64748b;
-}
-
-.mode-tab-btn.active {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: var(--accent-amber);
-  color: var(--accent-amber);
-}
-
-.mode-tab-btn.active small {
-  color: #cbd5e1;
-}
-
-/* Powerup Status Bar */
+/* Powerup Bar */
 .powerup-bar {
   display: flex;
   gap: 6px;
@@ -260,96 +361,36 @@ html, body {
   text-align: center;
 }
 
-/* Overlay Screens */
-.overlay-screen {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
-  background: rgba(9, 13, 22, 0.92);
-}
-
-.overlay-screen.hidden, .hud-container.hidden, .boss-hud.hidden, .warning-banner.hidden {
-  display: none !important;
-}
-
-.menu-content, .shop-content, .gameover-content {
-  width: 100%;
-  max-width: 420px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-}
-
-.game-badge, .shop-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--accent-blue);
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  padding: 3px 10px;
-  border-radius: 12px;
-}
-
-.game-title {
-  font-family: var(--font-heading);
-  font-weight: 900;
-  font-size: 1.7rem;
-  line-height: 1.2;
-  color: #fff;
-}
-
-.highlight-text {
-  color: var(--accent-amber);
-}
-
-.error-text {
-  color: var(--accent-rose);
-}
-
-.game-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.instructions-card {
+.score-card {
   width: 100%;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 12px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  text-align: left;
 }
 
-.inst-item {
+.score-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.76rem;
-  color: #cbd5e1;
-}
-
-.inst-icon {
-  font-size: 1rem;
-}
-
-.controls-hint {
-  font-size: 0.68rem;
+  justify-content: space-between;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.4;
 }
 
-/* Touch Controls Layer */
+.score-row.highlight {
+  color: var(--accent-amber);
+  font-weight: 800;
+}
+
+.button-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .touch-controls {
   position: absolute;
   bottom: 16px;
@@ -381,27 +422,4 @@ html, body {
 
 .touch-btn:active {
   background: #334155;
-}
-
-.score-card {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.score-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
-.score-row.highlight {
-  color: var(--accent-amber);
-  font-weight: 800;
 }

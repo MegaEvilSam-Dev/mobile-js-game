@@ -10,6 +10,15 @@ export class LeprechaunManager {
   resize(width, height) {
     this.canvasWidth = width;
     this.canvasHeight = height;
+
+    // Recalculate lane-bound X positions for active bosses on resize
+    const roadX = 40;
+    const roadWidth = this.canvasWidth - 80;
+    const laneWidth = roadWidth / this.numLanes;
+
+    for (const boss of this.bosses) {
+      boss.x = roadX + (boss.lane * laneWidth) + (laneWidth / 2);
+    }
   }
 
   reset() {
@@ -32,7 +41,7 @@ export class LeprechaunManager {
 
     let mobSize = 2;
     if (distance < 60) {
-      mobSize = Math.floor(Math.random() * 2) + 1; // Fragile warm-up
+      mobSize = Math.floor(Math.random() * 2) + 1;
     } else {
       const minSize = Math.floor(3 + progress * 6);
       const maxSize = Math.floor(6 + progress * 12);
@@ -61,7 +70,7 @@ export class LeprechaunManager {
     });
   }
 
-  // Spawn Boss in a Specific Lane (NOT centered)
+  // Spawn Boss in a Specific Lane (Strictly Lane 0 or Lane 1, NEVER centered!)
   spawnBoss(hp = 60) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -77,7 +86,7 @@ export class LeprechaunManager {
       maxHp: hp,
       size: 70,
       active: true,
-      isEngaged: false // Set to true when meeting player, pausing damage & track!
+      isEngaged: false
     });
   }
 
@@ -97,12 +106,12 @@ export class LeprechaunManager {
       // If engaged, pause downward movement (stops at player line)
       if (boss.isEngaged) {
         isAnyBossEngaged = true;
-        boss.y = dragonSquad.y - 35; // Locked at meeting position
+        boss.y = dragonSquad.y - 35;
       } else {
-        boss.y += speed * 0.45; // Moves downward with traffic until meeting player
+        boss.y += speed * 0.45;
       }
 
-      // Fireball hits on Boss (Damage to player is 0 while engaged!)
+      // Fireball hits on Boss
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.hypot(fb.x - boss.x, fb.y - boss.y) < boss.size / 2 + fb.radius + 10) {
@@ -197,11 +206,12 @@ export class LeprechaunManager {
   draw(ctx) {
     ctx.save();
 
-    // 1. Draw Lane Bosses
+    // Draw Lane-Bound Bosses
     for (const boss of this.bosses) {
       ctx.save();
       ctx.translate(boss.x, boss.y);
 
+      // Crown
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath();
       ctx.moveTo(-24, -36);
@@ -213,16 +223,19 @@ export class LeprechaunManager {
       ctx.lineTo(24, -36);
       ctx.fill();
 
+      // Boss Head
       ctx.fillStyle = '#15803d';
       ctx.beginPath();
       ctx.arc(0, 0, boss.size / 2, 0, Math.PI * 2);
       ctx.fill();
 
+      // Golden Medallion
       ctx.fillStyle = '#eab308';
       ctx.beginPath();
       ctx.arc(0, 10, 16, 0, Math.PI * 2);
       ctx.fill();
 
+      // Health Bar
       const hpPercent = Math.max(0, boss.hp / boss.maxHp);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
       ctx.fillRect(-50, -85, 100, 10);
@@ -237,7 +250,7 @@ export class LeprechaunManager {
       ctx.restore();
     }
 
-    // 2. Draw Regular Army Mobs
+    // Draw Regular Army Mobs
     for (const mob of this.armyMobs) {
       ctx.save();
       ctx.translate(mob.x, mob.y);
