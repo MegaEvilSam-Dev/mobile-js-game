@@ -15,7 +15,8 @@ export class GateManager {
     this.gates = [];
   }
 
-  // Spawn Gate dynamically balanced against player's current dragon count!
+  // All bonus gates start negative and must be shot to become positive!
+  // Dodged gates that pass by without collision do NOT negate dragons!
   spawnSingleStaggeredGate(currentDragonCount = 2) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -24,10 +25,9 @@ export class GateManager {
     const lane = Math.floor(Math.random() * this.numLanes);
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
     
-    // Scale initial negative gate value fairly relative to player flock size!
-    // Example: If player has 3 dragons, max negative gate is -3.
-    const maxNeg = Math.min(6, Math.max(2, Math.floor(currentDragonCount * 0.8)));
-    const initialValue = -(Math.floor(Math.random() * maxNeg) + 1); // -1 to -maxNeg
+    // Scale initial negative value (-2 to -6)
+    const maxNeg = Math.min(6, Math.max(2, Math.floor(currentDragonCount * 0.75)));
+    const initialValue = -(Math.floor(Math.random() * maxNeg) + 2); // Starts negative!
     const y = -80;
 
     this.gates.push({
@@ -45,23 +45,25 @@ export class GateManager {
       const g = this.gates[i];
       g.y += speed;
 
-      // Check fireball hits -> TURNS NEGATIVE GATES POSITIVE!
+      // Check fireball hits -> TURNS NEGATIVE BONUS GATES POSITIVE!
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - g.y) < 25) {
           dragonSquad.fireballs.splice(j, 1);
-          g.value += 1; // Each fireball hit turns negative value positive!
+          g.value += 1; // Shooting increments gate value!
         }
       }
 
-      // Check Dragon collision with gate
+      // Check Dragon direct collision with gate
+      // ONLY NEGATES DRAGONS IF DRAGON DIRECTLY COLLIDES/HITS THE GATE!
       if (!g.passed && Math.abs(g.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
         g.passed = true;
-        onHitGate(g.value);
+        onHitGate(g.value); // Trigger hit effect (gain bonus dragons if positive, lose dragons if negative)
         this.gates.splice(i, 1);
         continue;
       }
 
+      // Gate passes by without being hit -> NO PENALTY! Cleanly removed!
       if (g.y > this.canvasHeight + 80) {
         this.gates.splice(i, 1);
       }
@@ -105,7 +107,7 @@ export class GateManager {
       // Gate Action Hint
       ctx.fillStyle = isPositive ? 'rgba(255, 255, 255, 0.9)' : '#fef08a';
       ctx.font = '700 9.5px Outfit';
-      ctx.fillText(isPositive ? 'POSITIVE GATE! 🌟' : 'SHOOT TO CONVERT! 💥', 0, 15);
+      ctx.fillText(isPositive ? 'BONUS READY! 🌟' : 'SHOOT TO CONVERT OR DODGE! 💥', 0, 15);
 
       ctx.restore();
     }
