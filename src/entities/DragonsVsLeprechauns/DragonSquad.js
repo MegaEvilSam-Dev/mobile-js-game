@@ -9,10 +9,12 @@ export class DragonSquad {
     this.targetX = canvasWidth / 2;
     this.y = canvasHeight - 160;
 
-    this.dragonCount = 2; // Starts with 2 dragons for balanced starting firepower!
+    this.squadSize = 5; // Starts with a mini mob of 5 dragons!
+    this.units = [];
     this.fireballs = [];
     this.shootTimer = 0;
-    this.wingAngle = 0;
+
+    this.rebuildMob();
   }
 
   resize(width, height) {
@@ -47,42 +49,70 @@ export class DragonSquad {
     }
   }
 
+  setSquadSize(newSize) {
+    this.squadSize = Math.max(0, Math.min(300, Math.round(newSize)));
+    this.rebuildMob();
+  }
+
   addDragons(count) {
-    this.dragonCount += count;
+    this.squadSize = Math.min(300, this.squadSize + Math.round(count));
+    this.rebuildMob();
   }
 
   removeDragons(count) {
-    this.dragonCount = Math.max(0, this.dragonCount - count);
+    this.squadSize = Math.max(0, this.squadSize - Math.round(count));
+    this.rebuildMob();
+  }
+
+  // Organic Total War Mob Swarm positioning
+  rebuildMob() {
+    const targetVisualCount = Math.min(60, this.squadSize);
+    while (this.units.length < targetVisualCount) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.sqrt(Math.random()) * Math.min(45, 12 + targetVisualCount * 1.2);
+      this.units.push({
+        offsetX: Math.cos(angle) * radius,
+        offsetY: Math.sin(angle) * (radius * 0.6),
+        vx: 0,
+        vy: 0
+      });
+    }
+    if (this.units.length > targetVisualCount) {
+      this.units.length = targetVisualCount;
+    }
   }
 
   update(dt, soundSynth) {
+    // Fluid horizontal steering towards lane center
     this.x += (this.targetX - this.x) * 0.25;
-    this.wingAngle = Math.sin(Date.now() * 0.015) * 0.4;
 
-    // Improved starting rate of fire
-    const shootCooldown = Math.max(0.15, 0.45 - (this.dragonCount * 0.015));
+    // Update Mob Swarm Unit Positions
+    for (const unit of this.units) {
+      const targetUnitX = this.x + unit.offsetX;
+      const targetUnitY = this.y + unit.offsetY;
+      unit.vx = (targetUnitX - (unit.currX || targetUnitX)) * 0.3;
+      unit.vy = (targetUnitY - (unit.currY || targetUnitY)) * 0.3;
+      unit.currX = (unit.currX || targetUnitX) + unit.vx;
+      unit.currY = (unit.currY || targetUnitY) + unit.vy;
+    }
 
+    // Auto Fireball Salvo Stream
     this.shootTimer += dt;
+    const shootCooldown = Math.max(0.08, 0.3 - (Math.min(20, this.squadSize) * 0.01));
     if (this.shootTimer > shootCooldown) {
       this.shootTimer = 0;
 
-      // Main dragon shoots
-      this.fireballs.push({
-        x: this.x,
-        y: this.y - 30,
-        speed: 13,
-        radius: 8
-      });
+      // Front units fire upward fireballs
+      const numShooters = Math.min(8, Math.max(1, Math.floor(this.squadSize / 3)));
+      for (let i = 0; i < numShooters; i++) {
+        const u = this.units[i % this.units.length];
+        const fx = u ? (u.currX || this.x) : this.x;
+        const fy = u ? (u.currY || this.y) : this.y;
 
-      // Mini dragons shoot
-      const numMiniShooters = Math.min(6, this.dragonCount - 1);
-      for (let i = 0; i < numMiniShooters; i++) {
-        const offsetAngle = ((i / numMiniShooters) * Math.PI) - (Math.PI / 2);
-        const offsetX = Math.cos(offsetAngle) * 32;
         this.fireballs.push({
-          x: this.x + offsetX,
-          y: this.y - 15,
-          speed: 13,
+          x: fx,
+          y: fy - 15,
+          speed: 15,
           radius: 6
         });
       }
@@ -99,77 +129,51 @@ export class DragonSquad {
   }
 
   draw(ctx) {
-    if (this.dragonCount <= 0) return;
+    if (this.squadSize <= 0) return;
 
     ctx.save();
 
-    // 1. Draw Mini Dragons
-    const miniCount = Math.min(20, this.dragonCount - 1);
-    for (let i = 0; i < miniCount; i++) {
-      const radiusOffset = 38 + Math.floor(i / 6) * 22;
-      const angle = (i * 0.8) + (Date.now() * 0.003);
-      const mx = this.x + Math.cos(angle) * radiusOffset;
-      const my = this.y + Math.sin(angle) * (radiusOffset * 0.5);
+    // 1. Draw Total War Mob Swarm Units
+    for (const unit of this.units) {
+      const ux = unit.currX || this.x;
+      const uy = unit.currY || this.y;
 
       ctx.save();
-      ctx.translate(mx, my);
+      ctx.translate(ux, uy);
+
+      // Dragon Unit Body
       ctx.fillStyle = '#10b981';
       ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#065f46';
-      ctx.fillRect(-14, -4, 28, 4);
+      // Dragon Wings
+      ctx.fillStyle = '#047857';
+      ctx.fillRect(-11, -3, 22, 3);
       ctx.restore();
     }
 
-    // 2. Draw Main Player Dragon
+    // 2. Draw Mob Leader Badge & Squad Counter
     ctx.save();
-    ctx.translate(this.x, this.y);
+    ctx.translate(this.x, this.y - 45);
 
-    ctx.fillStyle = '#047857';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-45, -30, -65, 10);
-    ctx.quadraticCurveTo(-40, 30, 0, 0);
+    ctx.roundRect(-24, -12, 48, 24, 8);
     ctx.fill();
+    ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(45, -30, 65, 10);
-    ctx.quadraticCurveTo(40, 30, 0, 0);
-    ctx.fill();
-
-    ctx.fillStyle = '#10b981';
-    ctx.beginPath();
-    ctx.arc(0, 0, 24, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#065f46';
-    ctx.beginPath();
-    ctx.roundRect(-10, -30, 20, 18, 4);
-    ctx.fill();
-
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.arc(-8, -12, 4, 0, Math.PI * 2);
-    ctx.arc(8, -12, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath();
-    ctx.arc(0, 0, 12, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = '800 12px Outfit';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 13px Outfit';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(this.dragonCount.toString(), 0, 1);
+    ctx.fillText(`${this.squadSize} 🐉`, 0, 1);
 
     ctx.restore();
 
-    // 3. Draw Fireball Projectiles
+    // 3. Draw Fireball Salvoes
     ctx.fillStyle = '#f97316';
     for (const fb of this.fireballs) {
       ctx.beginPath();
