@@ -28,8 +28,8 @@ export class LeprechaunManager {
       lane,
       x,
       y,
-      hp: 2,
-      maxHp: 2,
+      hp: 1, // 1 shot to eliminate basic enemies!
+      maxHp: 1,
       size: 32,
       escaped: false
     });
