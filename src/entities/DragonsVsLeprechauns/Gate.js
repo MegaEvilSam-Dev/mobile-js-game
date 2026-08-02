@@ -15,8 +15,7 @@ export class GateManager {
     this.gatePairs = [];
   }
 
-  // Spawns Total War Style 2-Lane Multiplier Gate Pairs (+30, x3, x5, -15)
-  spawnGatePair(currentDragonCount = 5) {
+  spawnGatePair(currentDragonCount = 10) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const halfWidth = roadWidth / 2;
@@ -39,7 +38,7 @@ export class GateManager {
     });
   }
 
-  update(speed, dragonSquad, onHitGate) {
+  update(speed, dragonSquad, particlePool, onHitGate) {
     for (let i = this.gatePairs.length - 1; i >= 0; i--) {
       const pair = this.gatePairs[i];
       pair.y += speed;
@@ -60,6 +59,9 @@ export class GateManager {
                 g.isPositive = true;
               }
             }
+
+            particlePool.spawnExplosion(fb.x, fb.y, g.isPositive ? '#10b981' : '#ef4444', 3);
+            particlePool.spawnDamagePopup(fb.x, fb.y - 10, '+1', '#60a5fa');
           }
         }
 
@@ -67,6 +69,7 @@ export class GateManager {
         if (!g.passed && Math.abs(pair.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
           g.passed = true;
           pair.gates.forEach(gate => gate.passed = true);
+          particlePool.spawnExplosion(g.x, pair.y, g.isPositive ? '#10b981' : '#ef4444', 15);
           onHitGate(g);
           this.gatePairs.splice(i, 1);
           break;
@@ -91,7 +94,6 @@ export class GateManager {
         const color = g.isPositive ? '#10b981' : '#ef4444';
         const label = `${g.op}${g.val}`;
 
-        // Total War Glass Multiplier Gate
         ctx.fillStyle = g.isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.45)';
         ctx.strokeStyle = color;
         ctx.lineWidth = 4;
@@ -101,7 +103,6 @@ export class GateManager {
         ctx.fill();
         ctx.stroke();
 
-        // Multiplier Label
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 24px Outfit';
         ctx.textAlign = 'center';
@@ -110,7 +111,7 @@ export class GateManager {
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         ctx.font = '800 9px Outfit';
-        ctx.fillText(g.isPositive ? 'TOTAL WAR MULTIPLIER 🚀' : 'SHOOT TO REDUCE! 💥', 0, 16);
+        ctx.fillText(g.isPositive ? 'DYNAMIC MULTIPLIER 🚀' : 'SHOOT TO REDUCE! 💥', 0, 16);
 
         ctx.restore();
       }

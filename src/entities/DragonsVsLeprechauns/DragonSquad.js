@@ -9,10 +9,17 @@ export class DragonSquad {
     this.targetX = canvasWidth / 2;
     this.y = canvasHeight - 160;
 
-    this.squadSize = 10; // Starts with a balanced mob of 10 dragons!
+    this.squadSize = 1; // Starts at 1 Hatchling
     this.units = [];
     this.fireballs = [];
     this.shootTimer = 0;
+
+    // Power-Up Buff Timers (10s duration)
+    this.shieldTimer = 0;
+    this.multiFireTimer = 0;
+    this.speedShootTimer = 0;
+
+    this.isBossBreathAttack = false;
 
     this.rebuildMob();
   }
@@ -60,21 +67,34 @@ export class DragonSquad {
   }
 
   removeDragons(count) {
+    if (this.shieldTimer > 0) return; // Shield invulnerability!
     this.squadSize = Math.max(0, this.squadSize - Math.round(count));
     this.rebuildMob();
   }
 
-  // Organic Total War Mob Swarm positioning
+  applyPowerUp(type) {
+    if (type === 'shield') this.shieldTimer = 10;
+    if (type === 'multifire') this.multiFireTimer = 10;
+    if (type === 'speedshoot') this.speedShootTimer = 10;
+  }
+
+  // Dragon Evolution Tier (Hatchling -> Drake -> Ancient Dragon)
+  getEvolutionTier() {
+    if (this.squadSize >= 25) return { name: 'ANCIENT DRAGON', scale: 1.4, color: '#f59e0b', body: '#047857' };
+    if (this.squadSize >= 10) return { name: 'DRAKE DRAGON', scale: 1.2, color: '#10b981', body: '#065f46' };
+    return { name: 'HATCHLING', scale: 1.0, color: '#34d399', body: '#047857' };
+  }
+
   rebuildMob() {
-    const targetVisualCount = Math.min(60, this.squadSize);
+    const targetVisualCount = Math.min(50, this.squadSize);
     while (this.units.length < targetVisualCount) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.sqrt(Math.random()) * Math.min(45, 12 + targetVisualCount * 1.2);
       this.units.push({
         offsetX: Math.cos(angle) * radius,
         offsetY: Math.sin(angle) * (radius * 0.6),
-        vx: 0,
-        vy: 0
+        currX: this.x,
+        currY: this.y
       });
     }
     if (this.units.length > targetVisualCount) {
@@ -82,47 +102,55 @@ export class DragonSquad {
     }
   }
 
-  update(dt, soundSynth) {
-    // Fluid horizontal steering towards lane center
+  update(dt) {
+    // Smooth horizontal steering
     this.x += (this.targetX - this.x) * 0.25;
 
-    // Update Mob Swarm Unit Positions
+    // Update Buff Timers
+    if (this.shieldTimer > 0) this.shieldTimer -= dt;
+    if (this.multiFireTimer > 0) this.multiFireTimer -= dt;
+    if (this.speedShootTimer > 0) this.speedShootTimer -= dt;
+
+    // Trailing Breadcrumb Mob Physics
     for (const unit of this.units) {
       const targetUnitX = this.x + unit.offsetX;
       const targetUnitY = this.y + unit.offsetY;
-      unit.vx = (targetUnitX - (unit.currX || targetUnitX)) * 0.3;
-      unit.vy = (targetUnitY - (unit.currY || targetUnitY)) * 0.3;
-      unit.currX = (unit.currX || targetUnitX) + unit.vx;
-      unit.currY = (unit.currY || targetUnitY) + unit.vy;
+      unit.currX += (targetUnitX - unit.currX) * 0.3;
+      unit.currY += (targetUnitY - unit.currY) * 0.3;
     }
 
-    // Auto Fireball Salvo Stream
+    // Auto Fireball System
     this.shootTimer += dt;
-    const shootCooldown = Math.max(0.08, 0.3 - (Math.min(20, this.squadSize) * 0.01));
-    if (this.shootTimer > shootCooldown) {
+    let baseCooldown = Math.max(0.08, 0.3 - (Math.min(20, this.squadSize) * 0.01));
+    if (this.speedShootTimer > 0) baseCooldown /= 2; // Speed-Shoot Buff doubles rate of fire!
+    if (this.isBossBreathAttack) baseCooldown = 0.05; // Full-Power Breath Attack State!
+
+    if (this.shootTimer > baseCooldown) {
       this.shootTimer = 0;
 
-      // Front units fire upward fireballs
-      const numShooters = Math.min(8, Math.max(1, Math.floor(this.squadSize / 3)));
+      const numShooters = Math.min(10, Math.max(1, Math.floor(this.squadSize / 2)));
       for (let i = 0; i < numShooters; i++) {
         const u = this.units[i % this.units.length];
-        const fx = u ? (u.currX || this.x) : this.x;
-        const fy = u ? (u.currY || this.y) : this.y;
+        const fx = u ? u.currX : this.x;
+        const fy = u ? u.currY : this.y;
 
-        this.fireballs.push({
-          x: fx,
-          y: fy - 15,
-          speed: 15,
-          radius: 6
-        });
+        if (this.multiFireTimer > 0) {
+          // Multi-Fire Buff: 3 Stream Spread!
+          this.fireballs.push({ x: fx, y: fy - 15, vx: -3, vy: -15, radius: 6 });
+          this.fireballs.push({ x: fx, y: fy - 15, vx: 0, vy: -15, radius: 6 });
+          this.fireballs.push({ x: fx, y: fy - 15, vx: 3, vy: -15, radius: 6 });
+        } else {
+          this.fireballs.push({ x: fx, y: fy - 15, vx: 0, vy: -15, radius: 6 });
+        }
       }
     }
 
     // Update Fireballs
     for (let i = this.fireballs.length - 1; i >= 0; i--) {
       const fb = this.fireballs[i];
-      fb.y -= fb.speed;
-      if (fb.y < -40) {
+      fb.x += (fb.vx || 0);
+      fb.y += (fb.vy || -15);
+      if (fb.y < -40 || fb.x < -20 || fb.x > this.canvasWidth + 20) {
         this.fireballs.splice(i, 1);
       }
     }
@@ -131,49 +159,101 @@ export class DragonSquad {
   draw(ctx) {
     if (this.squadSize <= 0) return;
 
+    const evo = this.getEvolutionTier();
+
     ctx.save();
 
-    // 1. Draw Total War Mob Swarm Units
+    // 1. Draw Trailing Squad Clones
     for (const unit of this.units) {
-      const ux = unit.currX || this.x;
-      const uy = unit.currY || this.y;
-
       ctx.save();
-      ctx.translate(ux, uy);
-
-      // Dragon Unit Body
-      ctx.fillStyle = '#10b981';
+      ctx.translate(unit.currX, unit.currY);
+      ctx.fillStyle = evo.color;
       ctx.beginPath();
-      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.arc(0, 0, 7 * evo.scale, 0, Math.PI * 2);
       ctx.fill();
 
-      // Dragon Wings
-      ctx.fillStyle = '#047857';
-      ctx.fillRect(-11, -3, 22, 3);
+      ctx.fillStyle = evo.body;
+      ctx.fillRect(-10 * evo.scale, -3, 20 * evo.scale, 3);
       ctx.restore();
     }
 
-    // 2. Draw Mob Leader Badge & Squad Counter
+    // 2. Draw Lead Dragon (with Evolution Scale & Buff Visuals)
     ctx.save();
-    ctx.translate(this.x, this.y - 45);
+    ctx.translate(this.x, this.y);
+    ctx.scale(evo.scale, evo.scale);
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = '#10b981';
+    // Shield Energy Bubble Visual
+    if (this.shieldTimer > 0) {
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#3b82f6';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(0, 0, 32, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Ancient Dragon Crown / Flame Aura
+    if (this.squadSize >= 25) {
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.moveTo(-12, -26);
+      ctx.lineTo(-16, -42);
+      ctx.lineTo(-5, -30);
+      ctx.lineTo(0, -46);
+      ctx.lineTo(5, -30);
+      ctx.lineTo(16, -42);
+      ctx.lineTo(12, -26);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Wings
+    ctx.fillStyle = evo.body;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-45, -30, -65, 10);
+    ctx.quadraticCurveTo(-40, 30, 0, 0);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(45, -30, 65, 10);
+    ctx.quadraticCurveTo(40, 30, 0, 0);
+    ctx.fill();
+
+    // Body & Snout
+    ctx.fillStyle = evo.color;
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = evo.body;
+    ctx.beginPath();
+    ctx.roundRect(-10, -28, 20, 16, 4);
+    ctx.fill();
+
+    ctx.restore();
+
+    // 3. Draw Squad Counter Badge
+    ctx.save();
+    ctx.translate(this.x, this.y - 50);
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = evo.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(-24, -12, 48, 24, 8);
+    ctx.roundRect(-35, -12, 70, 24, 8);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 13px Outfit';
+    ctx.font = '900 12px Outfit';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${this.squadSize} 🐉`, 0, 1);
-
     ctx.restore();
 
-    // 3. Draw Fireball Salvoes
+    // 4. Draw Fireballs
     ctx.fillStyle = '#f97316';
     for (const fb of this.fireballs) {
       ctx.beginPath();
