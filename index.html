@@ -1,229 +1,741 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Mobile, AL Pothole Panic: Moonpie Bayway Dash</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dragon Multiplier Rush 🐉🍀</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #090d16;
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      max-height: 900px;
+      background: #0f172a;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI Overlays */
+    .overlay-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+      text-align: center;
+      z-index: 10;
+      transition: opacity 0.25s ease;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #ffffff, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 24px;
+      max-width: 320px;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 800;
+      padding: 16px 40px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .primary-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .hud-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 10px 18px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hud-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      font-size: 20px;
+      font-weight: 900;
+      color: #ffffff;
+    }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <!-- Game Canvas Container -->
-    <div id="canvas-container">
-      <canvas id="game-canvas"></canvas>
 
-      <!-- Glassmorphic HUD Overlay -->
-      <div id="hud" class="hud-layer hidden">
-        <div class="hud-top-bar">
-          <div class="hud-card">
-            <span class="hud-label">BAYWAY POTHOLES</span>
-            <span id="hud-potholes" class="hud-value">0</span>
-            <span id="hud-next-milestone" class="hud-sub">/ 25 (Boss/Shop)</span>
-          </div>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
 
-          <div class="hud-card moonpie-card">
-            <span class="hud-label">MOONPIE AMMO</span>
-            <div class="hud-value-row">
-              <span class="moonpie-icon">🥮</span>
-              <span id="hud-moonpies" class="hud-value">0</span>
-              <span id="hud-ammo-count" class="hud-sub" style="color: var(--accent-amber); font-weight: 700; margin-left: 4px;">(0 Shots)</span>
-            </div>
-            <span id="hud-interval-moonpies" class="hud-sub">This interval: 0/3</span>
-          </div>
-
-          <div class="hud-card score-card">
-            <span class="hud-label">SCORE</span>
-            <span id="hud-score" class="hud-value">0000</span>
-          </div>
-
-          <button id="sound-toggle-btn" class="hud-icon-btn" title="Toggle Sound">🔊</button>
-        </div>
-
-        <!-- Active Power-ups Bar -->
-        <div id="powerup-status" class="powerup-bar"></div>
-
-        <!-- Boss Health Bar (Appears during Boss Fight) -->
-        <div id="boss-hud" class="boss-hud hidden">
-          <div class="boss-header">
-            <span class="boss-name">🐊 MOBILE DELTA GATOR-DRAGON BOSS 🐊</span>
-            <span id="boss-hp-text" class="boss-hp-text">100%</span>
-          </div>
-          <div class="boss-hp-track">
-            <div id="boss-hp-fill" class="boss-hp-fill" style="width: 100%;"></div>
-          </div>
-          <button id="throw-moonpie-btn" class="throw-btn-compact">🥮 THROW MOONPIE AT GATOR-DRAGON! (SPACE / TAP)</button>
-        </div>
-
-        <!-- Warning Flash Notification -->
-        <div id="warning-banner" class="warning-banner hidden">
-          <div class="warning-title">⚠️ DELTA GATOR-DRAGON ATTACK! ⚠️</div>
-          <div class="warning-sub">Dodge the Mobile Bay Fireballs!</div>
-        </div>
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-box">
+        <span class="hud-label">DRAGON SQUAD</span>
+        <span id="hud-squad" class="hud-val">1 🐉</span>
       </div>
-
-      <!-- Start / Main Menu Overlay -->
-      <div id="menu-screen" class="overlay-screen">
-        <div class="menu-content glass-card">
-          <div class="game-badge">SELECT GAME MODE 🎮</div>
-          <h1 class="game-title">MOBILE BAY<br><span class="highlight-text">ARCADE RUNNER</span></h1>
-
-          <!-- Game Mode Selector Buttons -->
-          <div class="mode-selector-grid">
-            <button id="mode-potholes-btn" class="mode-tab-btn active" data-mode="potholes">
-              <span>🥮 MODE 1: POTHOLE PANIC</span>
-              <small>Dodge craters • Collect Moonpies • Battle Dragon</small>
-            </button>
-            <button id="mode-dragons-btn" class="mode-tab-btn" data-mode="dragons">
-              <span>🐉 MODE 2: DRAGONS VS LEPRECHAUNS</span>
-              <small>2 Lanes • Shoot Math Gates • Build Dragon Flock</small>
-            </button>
-          </div>
-
-          <!-- Mode 1 Instructions Card -->
-          <div id="inst-potholes" class="instructions-card">
-            <div class="inst-item">
-              <span class="inst-icon">🕳️</span>
-              <span><strong>Dodge Potholes:</strong> Dodge craters at comfortable highway speeds!</span>
-            </div>
-            <div class="inst-item">
-              <span class="inst-icon">🥮</span>
-              <span><strong>Moonpie Ammo:</strong> Each Golden Moonpie grants <strong>10 Ammo Shots</strong>!</span>
-            </div>
-            <div class="inst-item">
-              <span class="inst-icon">🐊</span>
-              <span><strong>Quick Boss Routes:</strong> 1st Gator-Dragon Boss arrives at <strong>25 Potholes</strong>!</span>
-            </div>
-          </div>
-
-          <!-- Mode 2 Instructions Card -->
-          <div id="inst-dragons" class="instructions-card hidden">
-            <div class="inst-item">
-              <span class="inst-icon">🍀</span>
-              <span><strong>Shoot Leprechauns:</strong> Dragon automatically shoots fireballs!</span>
-            </div>
-            <div class="inst-item">
-              <span class="inst-icon">🎯</span>
-              <span><strong>Shoot Math Gates:</strong> Shooting gates increases their value!</span>
-            </div>
-            <div class="inst-item">
-              <span class="inst-icon">🐉</span>
-              <span><strong>Flock Growth:</strong> Positive gates add mini dragons! 0 dragons = Game Over!</span>
-            </div>
-          </div>
-
-          <button id="start-btn" class="primary-btn">DRIVE & DASH ▶</button>
-          
-          <div class="controls-hint">
-            <span>📱 <strong>Mobile:</strong> Swipe Left/Right to change lanes | Swipe Up to Jump</span><br/>
-            <span>💻 <strong>Desktop:</strong> Left/Right Arrows or A/D | Spacebar to Jump</span>
-          </div>
-        </div>
+      <div class="hud-box">
+        <span class="hud-label">SCORE</span>
+        <span id="hud-score" class="hud-val">0000</span>
       </div>
+    </div>
 
-      <!-- Shop Modal Overlay (Appears every 50 Potholes) -->
-      <div id="shop-screen" class="overlay-screen hidden">
-        <div class="shop-content glass-card">
-          <div class="shop-header">
-            <span class="shop-badge">GOVERNMENT ST. PITSTOP ⚜️</span>
-            <h2>🛒 MOBILE MOONPIE POWER-UP SHOP</h2>
-            <div class="shop-currency">
-              <span>Your Mobile Golden Moonpies:</span>
-              <span id="shop-moonpie-count" class="currency-val">0 🥮</span>
-            </div>
-          </div>
+    <!-- Start Screen -->
+    <div id="start-screen" class="overlay-screen">
+      <div class="badge">MULTIPLIER RUNNER SHOOTER</div>
+      <h1 class="title">DRAGON<br>MULTIPLIER RUSH</h1>
+      <p class="subtitle">Drag to move • Fireballs auto-shoot • Shoot gates to boost your squad • Blast leprechauns!</p>
+      <button id="start-btn" class="primary-btn">TAP TO START ▶</button>
+    </div>
 
-          <div class="shop-grid">
-            <div class="shop-item" data-item="shield">
-              <div class="item-icon">🛡️</div>
-              <div class="item-info">
-                <h3>Pothole Repair Shield</h3>
-                <p>Absorbs 1 pothole crash cleanly.</p>
-              </div>
-              <button class="buy-btn" data-item="shield" data-cost="1">BUY (1 🥮)</button>
-            </div>
-
-            <div class="shop-item" data-item="magnet">
-              <div class="item-icon">🧲</div>
-              <div class="item-info">
-                <h3>Moonpie Magnet</h3>
-                <p>Attracts moonpies from adjacent lanes for 15s.</p>
-              </div>
-              <button class="buy-btn" data-item="magnet" data-cost="2">BUY (2 🥮)</button>
-            </div>
-
-            <div class="shop-item" data-item="jump">
-              <div class="item-icon">🚀</div>
-              <div class="item-info">
-                <h3>Hover Thruster</h3>
-                <p>Fly over potholes & hazards for 8s.</p>
-              </div>
-              <button class="buy-btn" data-item="jump" data-cost="2">BUY (2 🥮)</button>
-            </div>
-
-            <div class="shop-item" data-item="emp">
-              <div class="item-icon">💥</div>
-              <div class="item-info">
-                <h3>Dragon EMP Blaster</h3>
-                <p>Deals 40% instant damage to Dragon Bosses.</p>
-              </div>
-              <button class="buy-btn" data-item="emp" data-cost="3">BUY (3 🥮)</button>
-            </div>
-          </div>
-
-          <button id="resume-btn" class="secondary-btn">RESUME RUN ➔</button>
-        </div>
-      </div>
-
-      <!-- Game Over Overlay -->
-      <div id="gameover-screen" class="overlay-screen hidden">
-        <div class="gameover-content glass-card">
-          <div class="crash-icon">💥</div>
-          <h2>CRASHED IN A POTHOLE!</h2>
-          <p id="gameover-reason">You hit a giant road crater!</p>
-
-          <div class="stats-grid">
-            <div class="stat-box">
-              <span class="stat-label">Potholes Dodged</span>
-              <span id="go-potholes" class="stat-val">0</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-label">Golden Moonpies</span>
-              <span id="go-moonpies" class="stat-val">0 🥮</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-label">Final Score</span>
-              <span id="go-score" class="stat-val">0</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-label">High Score</span>
-              <span id="go-highscore" class="stat-val">0</span>
-            </div>
-          </div>
-
-          <button id="restart-btn" class="primary-btn">TRY AGAIN ↺</button>
-        </div>
-      </div>
-
-      <!-- Pause Screen Overlay -->
-      <div id="pause-screen" class="overlay-screen hidden">
-        <div class="pause-content glass-card">
-          <h2>⏸️ GAME PAUSED</h2>
-          <p>Press 'P' or tap below to resume your Mobile Bay run!</p>
-          <button id="pause-resume-btn" class="primary-btn">RESUME GAME ▶</button>
-        </div>
-      </div>
-
-      <!-- Mobile On-Screen Touch Controls (Left & Right Only) -->
-      <div id="touch-controls" class="touch-controls-layer">
-        <button id="touch-left" class="touch-btn">◀</button>
-        <button id="touch-right" class="touch-btn">▶</button>
-      </div>
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="overlay-screen hidden">
+      <div class="badge" style="background: linear-gradient(135deg, #ef4444, #dc2626);">GAME OVER</div>
+      <h1 class="title" style="background: linear-gradient(135deg, #ffffff, #f87171); -webkit-background-clip: text;">SQUAD ELIMINATED</h1>
+      <p id="final-score-text" class="subtitle">Final Score: 0</p>
+      <button id="restart-btn" class="primary-btn" style="background: linear-gradient(135deg, #10b981, #059669);">RESTART ▶</button>
     </div>
   </div>
 
-  <script type="module" src="/src/main.js"></script>
+  <script>
+    /**
+     * DRAGON MULTIPLIER RUSH - Standalone Senior Game Developer Implementation
+     */
+
+    // --- 1. FIREBALL CLASS ---
+    class Fireball {
+      constructor(x, y, radius = 6, speed = 14) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.speed = speed;
+        this.active = true;
+      }
+
+      update(dt) {
+        this.y -= this.speed * (dt * 60);
+        if (this.y < -20) this.active = false;
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = '#f97316';
+        ctx.shadowColor = '#f97316';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // --- 2. DRAGON SQUAD CLASS ---
+    class DragonSquad {
+      constructor(canvasWidth, canvasHeight) {
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.x = canvasWidth / 2;
+        this.targetX = canvasWidth / 2;
+        this.y = canvasHeight - 140;
+        this.radius = 24;
+        this.squadSize = 1;
+
+        this.fireballs = [];
+        this.shootTimer = 0;
+      }
+
+      resize(width, height) {
+        this.canvasWidth = width;
+        this.canvasHeight = height;
+        this.y = height - 140;
+      }
+
+      setTargetX(mouseX) {
+        // Bound movement inside track limits
+        const margin = 50;
+        this.targetX = Math.max(margin, Math.min(this.canvasWidth - margin, mouseX));
+      }
+
+      update(dt) {
+        // Smooth horizontal steering
+        this.x += (this.targetX - this.x) * 0.25;
+
+        // Auto Fireball Stream (Fire rate scales up with squad size)
+        this.shootTimer += dt;
+        const cooldown = Math.max(0.12, 0.35 - (Math.min(10, this.squadSize) * 0.02));
+        
+        if (this.shootTimer > cooldown) {
+          this.shootTimer = 0;
+          
+          // Main dragon fires
+          this.fireballs.push(new Fireball(this.x, this.y - 20));
+
+          // Clones shoot
+          const clonesToShoot = Math.min(6, this.squadSize - 1);
+          for (let i = 0; i < clonesToShoot; i++) {
+            const angle = ((i / clonesToShoot) * Math.PI) - (Math.PI / 2);
+            const offsetX = Math.cos(angle) * 32;
+            this.fireballs.push(new Fireball(this.x + offsetX, this.y - 10, 5, 13));
+          }
+        }
+
+        // Update Fireballs
+        for (let i = this.fireballs.length - 1; i >= 0; i--) {
+          const fb = this.fireballs[i];
+          fb.update(dt);
+          if (!fb.active) this.fireballs.splice(i, 1);
+        }
+      }
+
+      draw(ctx) {
+        if (this.squadSize <= 0) return;
+
+        ctx.save();
+
+        // 1. Draw Squad Clones Trailing Main Dragon
+        const numClones = Math.min(18, this.squadSize - 1);
+        for (let i = 0; i < numClones; i++) {
+          const distance = 36 + Math.floor(i / 5) * 20;
+          const angle = (i * 0.95) + (Date.now() * 0.003);
+          const cx = this.x + Math.cos(angle) * distance;
+          const cy = this.y + Math.sin(angle) * (distance * 0.45);
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.arc(0, 0, 10, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#047857';
+          ctx.fillRect(-14, -4, 28, 4);
+          ctx.restore();
+        }
+
+        // 2. Draw Main Lead Dragon
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Wings
+        ctx.fillStyle = '#047857';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-45, -30, -65, 10);
+        ctx.quadraticCurveTo(-40, 30, 0, 0);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(45, -30, 65, 10);
+        ctx.quadraticCurveTo(40, 30, 0, 0);
+        ctx.fill();
+
+        // Dragon Head Body
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Snout
+        ctx.fillStyle = '#065f46';
+        ctx.beginPath();
+        ctx.roundRect(-10, -30, 20, 18, 4);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(-8, -12, 4, 0, Math.PI * 2);
+        ctx.arc(8, -12, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Squad Counter Badge
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#60a5fa';
+        ctx.font = '800 12px Outfit';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.squadSize.toString(), 0, 1);
+
+        ctx.restore();
+
+        // Draw Fireballs
+        for (const fb of this.fireballs) fb.draw(ctx);
+
+        ctx.restore();
+      }
+    }
+
+    // --- 3. DYNAMIC MULTIPLIER GATE PAIR CLASS ---
+    class GatePair {
+      constructor(canvasWidth, y = -100) {
+        this.canvasWidth = canvasWidth;
+        this.y = y;
+        this.height = 54;
+        this.active = true;
+
+        const roadX = 40;
+        const roadWidth = canvasWidth - 80;
+        const halfWidth = roadWidth / 2;
+
+        // Generate Math Operators (+5, x2, -3, ÷2)
+        const ops = ['+', 'x', '-', '÷'];
+
+        // Left Gate
+        const op1 = ops[Math.floor(Math.random() * ops.length)];
+        const val1 = (op1 === 'x' || op1 === '÷') ? (Math.floor(Math.random() * 2) + 2) : (Math.floor(Math.random() * 8) + 2);
+        
+        // Right Gate
+        const op2 = ops[Math.floor(Math.random() * ops.length)];
+        const val2 = (op2 === 'x' || op2 === '÷') ? (Math.floor(Math.random() * 2) + 2) : (Math.floor(Math.random() * 8) + 2);
+
+        this.leftGate = {
+          x: roadX + halfWidth / 2,
+          width: halfWidth - 10,
+          op: op1,
+          val: val1,
+          isPositive: op1 === '+' || op1 === 'x'
+        };
+
+        this.rightGate = {
+          x: roadX + halfWidth + halfWidth / 2,
+          width: halfWidth - 10,
+          op: op2,
+          val: val2,
+          isPositive: op2 === '+' || op2 === 'x'
+        };
+      }
+
+      update(speed, dt) {
+        this.y += speed * (dt * 60);
+      }
+
+      // Shooting a gate increases its value dynamically!
+      hitGate(gate) {
+        if (gate.op === '+' || gate.op === 'x') {
+          gate.val += 1;
+        } else if (gate.op === '-') {
+          gate.val -= 1;
+          if (gate.val <= 0) {
+            gate.op = '+';
+            gate.val = Math.abs(gate.val) + 1;
+            gate.isPositive = true;
+          }
+        } else if (gate.op === '÷') {
+          gate.val -= 1;
+          if (gate.val <= 1) {
+            gate.op = 'x';
+            gate.val = 2;
+            gate.isPositive = true;
+          }
+        }
+      }
+
+      applyMath(gate, squadSize) {
+        if (gate.op === '+') return squadSize + gate.val;
+        if (gate.op === 'x') return squadSize * gate.val;
+        if (gate.op === '-') return Math.max(0, squadSize - gate.val);
+        if (gate.op === '÷') return Math.max(0, Math.floor(squadSize / gate.val));
+        return squadSize;
+      }
+
+      draw(ctx) {
+        ctx.save();
+        for (const gate of [this.leftGate, this.rightGate]) {
+          ctx.save();
+          ctx.translate(gate.x, this.y);
+
+          const color = gate.isPositive ? '#10b981' : '#ef4444';
+          const label = `${gate.op}${gate.val}`;
+
+          // Gate Fill
+          ctx.fillStyle = gate.isPositive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.4)';
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3.5;
+
+          ctx.beginPath();
+          ctx.roundRect(-gate.width / 2, -this.height / 2, gate.width, this.height, 12);
+          ctx.fill();
+          ctx.stroke();
+
+          // Gate Label
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 22px Outfit';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, 0, -2);
+
+          // Sub-hint
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.font = '700 9px Outfit';
+          ctx.fillText('SHOOT TO BOOST 🎯', 0, 16);
+
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+    }
+
+    // --- 4. LEPRECHAUN ENEMY CLASS ---
+    class Leprechaun {
+      constructor(canvasWidth, y = -60) {
+        this.canvasWidth = canvasWidth;
+        const roadX = 40;
+        const roadWidth = canvasWidth - 80;
+        
+        this.x = roadX + Math.random() * roadWidth;
+        this.y = y;
+        this.radius = 18;
+        this.hp = Math.floor(Math.random() * 20) + 10; // e.g. HP: 10 to 30
+        this.maxHp = this.hp;
+        this.active = true;
+      }
+
+      update(speed, dt) {
+        this.y += (speed * 0.9) * (dt * 60);
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Leprechaun Body
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hat
+        ctx.fillStyle = '#166534';
+        ctx.fillRect(-14, -22, 28, 5);
+        ctx.fillRect(-9, -36, 18, 14);
+
+        // Buckle
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(-3, -26, 6, 6);
+
+        // HP Badge Label
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.roundRect(-20, -48, 40, 14, 4);
+        ctx.fill();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '800 10px Outfit';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`HP: ${this.hp}`, 0, -41);
+
+        ctx.restore();
+      }
+    }
+
+    // --- 5. GAME ENGINE ---
+    class GameEngine {
+      constructor() {
+        this.canvas = document.getElementById('game-canvas');
+        this.ctx = this.canvas.getContext('2d');
+
+        this.state = 'START'; // START, RUNNING, GAMEOVER
+        this.speed = 4.5;
+        this.score = 0;
+
+        this.dragonSquad = new DragonSquad(this.canvas.width, this.canvas.height);
+        this.gatePairs = [];
+        this.leprechauns = [];
+
+        this.gateTimer = 0;
+        this.enemyTimer = 0;
+        this.lastTime = 0;
+
+        this.initEvents();
+        this.resize();
+      }
+
+      resize() {
+        const container = document.getElementById('game-container');
+        this.width = container.clientWidth;
+        this.height = container.clientHeight;
+
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+
+        this.dragonSquad.resize(this.width, this.height);
+      }
+
+      initEvents() {
+        window.addEventListener('resize', () => this.resize());
+
+        // Mouse / Touch Dragging Steering Controls
+        const handleMove = (e) => {
+          if (this.state !== 'RUNNING') return;
+          const rect = this.canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const mouseX = clientX - rect.left;
+          this.dragonSquad.setTargetX(mouseX);
+        };
+
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: true });
+
+        document.getElementById('start-btn').onclick = () => this.startGame();
+        document.getElementById('restart-btn').onclick = () => this.startGame();
+      }
+
+      startGame() {
+        this.state = 'RUNNING';
+        this.speed = 4.5;
+        this.score = 0;
+
+        this.dragonSquad = new DragonSquad(this.width, this.height);
+        this.gatePairs = [];
+        this.leprechauns = [];
+        this.gateTimer = 0;
+        this.enemyTimer = 0;
+
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('gameover-screen').classList.add('hidden');
+
+        this.lastTime = performance.now();
+        requestAnimationFrame((t) => this.loop(t));
+      }
+
+      gameOver() {
+        this.state = 'GAMEOVER';
+        document.getElementById('final-score-text').innerText = `Final Score: ${Math.round(this.score)}`;
+        document.getElementById('gameover-screen').classList.remove('hidden');
+      }
+
+      update(dt) {
+        if (this.state !== 'RUNNING') return;
+
+        this.score += dt * 25;
+        this.dragonSquad.update(dt);
+
+        // Spawn Multiplier Gate Pairs
+        this.gateTimer += dt;
+        if (this.gateTimer > 4.2) {
+          this.gateTimer = 0;
+          this.gatePairs.push(new GatePair(this.width));
+        }
+
+        // Spawn Leprechaun Hordes
+        this.enemyTimer += dt;
+        if (this.enemyTimer > 1.2) {
+          this.enemyTimer = 0;
+          for (let i = 0; i < 2; i++) {
+            this.leprechauns.push(new Leprechaun(this.width, -60 - (i * 40)));
+          }
+        }
+
+        // Update Gate Pairs & Collision
+        for (let i = this.gatePairs.length - 1; i >= 0; i--) {
+          const pair = this.gatePairs[i];
+          pair.update(this.speed, dt);
+
+          // Check Fireball hits on Gates -> Dynamic Multiplier Increase!
+          for (const gate of [pair.leftGate, pair.rightGate]) {
+            for (let j = this.dragonSquad.fireballs.length - 1; j >= 0; j--) {
+              const fb = this.dragonSquad.fireballs[j];
+              if (Math.abs(fb.x - gate.x) < gate.width / 2 && Math.abs(fb.y - pair.y) < pair.height / 2) {
+                this.dragonSquad.fireballs.splice(j, 1);
+                pair.hitGate(gate);
+              }
+            }
+          }
+
+          // Check Dragon Collision with Gate
+          if (Math.abs(pair.y - this.dragonSquad.y) < pair.height / 2 + 10) {
+            const hitGate = (this.dragonSquad.x < this.width / 2) ? pair.leftGate : pair.rightGate;
+            this.dragonSquad.squadSize = pair.applyMath(hitGate, this.dragonSquad.squadSize);
+            this.gatePairs.splice(i, 1);
+
+            if (this.dragonSquad.squadSize < 1) {
+              this.gameOver();
+              return;
+            }
+            continue;
+          }
+
+          if (pair.y > this.height + 100) {
+            this.gatePairs.splice(i, 1);
+          }
+        }
+
+        // Update Leprechauns & Collision
+        for (let i = this.leprechauns.length - 1; i >= 0; i--) {
+          const lep = this.leprechauns[i];
+          lep.update(this.speed, dt);
+
+          // Fireball hits on Leprechaun
+          for (let j = this.dragonSquad.fireballs.length - 1; j >= 0; j--) {
+            const fb = this.dragonSquad.fireballs[j];
+            if (Math.hypot(fb.x - lep.x, fb.y - lep.y) < lep.radius + fb.radius) {
+              this.dragonSquad.fireballs.splice(j, 1);
+              lep.hp -= 10;
+              if (lep.hp <= 0) {
+                this.score += 150;
+                this.leprechauns.splice(i, 1);
+                break;
+              }
+            }
+          }
+
+          // Leprechaun reaches Dragon -> 1:1 Squad Reduction!
+          if (Math.hypot(lep.x - this.dragonSquad.x, lep.y - this.dragonSquad.y) < lep.radius + this.dragonSquad.radius) {
+            this.dragonSquad.squadSize -= 1;
+            this.leprechauns.splice(i, 1);
+
+            if (this.dragonSquad.squadSize < 1) {
+              this.gameOver();
+              return;
+            }
+          }
+        }
+
+        // Update HUD
+        document.getElementById('hud-squad').innerText = `${this.dragonSquad.squadSize} 🐉`;
+        document.getElementById('hud-score').innerText = Math.round(this.score).toString().padStart(4, '0');
+      }
+
+      draw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        // Road Highway Background
+        this.ctx.fillStyle = '#0f172a';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        const roadX = 40;
+        const roadWidth = this.width - 80;
+        this.ctx.fillStyle = '#1e293b';
+        this.ctx.fillRect(roadX, 0, roadWidth, this.height);
+
+        // Center Line
+        this.ctx.strokeStyle = '#38bdf8';
+        this.ctx.lineWidth = 4;
+        this.ctx.setLineDash([30, 30]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.width / 2, 0);
+        this.ctx.lineTo(this.width / 2, this.height);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+
+        // Render Entities
+        for (const pair of this.gatePairs) pair.draw(this.ctx);
+        for (const lep of this.leprechauns) lep.draw(this.ctx);
+        this.dragonSquad.draw(this.ctx);
+      }
+
+      loop(timestamp) {
+        if (this.state !== 'RUNNING') return;
+        const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1);
+        this.lastTime = timestamp;
+
+        this.update(dt);
+        this.draw();
+
+        requestAnimationFrame((t) => this.loop(t));
+      }
+    }
+
+    // Initialize Game Engine on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      window.gameEngine = new GameEngine();
+    });
+  </script>
 </body>
 </html>
