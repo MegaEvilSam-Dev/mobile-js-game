@@ -12,9 +12,6 @@ export class DragonsVsLeprechaunsGame {
     this.ctx = canvas.getContext('2d');
     this.onReturnMenu = onReturnMenu;
 
-    this.width = canvas.clientWidth;
-    this.height = canvas.clientHeight;
-
     this.state = 'RUNNING';
     this.speed = 3.4;
     this.distance = 0;
@@ -24,6 +21,8 @@ export class DragonsVsLeprechaunsGame {
     this.bossCount = 0;
 
     this.numLanes = 2;
+
+    this.resize();
 
     this.dragonSquad = new DragonSquad(this.width, this.height);
     this.leprechaunManager = new LeprechaunManager(this.width, this.height);
@@ -40,10 +39,13 @@ export class DragonsVsLeprechaunsGame {
       (mouseX) => { try { if (this.dragonSquad) this.dragonSquad.setTargetX(mouseX); } catch (err) {} }
     );
 
+    this.resizeListener = () => this.resize();
+    window.addEventListener('resize', this.resizeListener);
+
     this.spawnTimer = 0;
     this.gateTimer = 0;
     this.powerUpTimer = 0;
-    this.lastTime = 0;
+    this.lastTime = performance.now();
 
     this.bindUI();
     this.resize();
@@ -52,6 +54,7 @@ export class DragonsVsLeprechaunsGame {
   destroy() {
     try {
       if (this.input) this.input.destroy();
+      if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
     } catch (err) {}
   }
 
@@ -63,13 +66,17 @@ export class DragonsVsLeprechaunsGame {
   }
 
   resize() {
-    const container = document.getElementById('canvas-container');
-    if (!container) return;
-    this.width = container.clientWidth || 360;
-    this.height = container.clientHeight || 640;
+    const container = document.getElementById('canvas-container') || document.body;
+    const w = (container && container.clientWidth > 0) ? container.clientWidth : (window.innerWidth || 360);
+    const h = (container && container.clientHeight > 0) ? container.clientHeight : (window.innerHeight || 640);
 
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    this.width = w;
+    this.height = h;
+
+    if (this.canvas) {
+      this.canvas.width = this.width;
+      this.canvas.height = this.height;
+    }
 
     if (this.dragonSquad) this.dragonSquad.resize(this.width, this.height);
     if (this.leprechaunManager) this.leprechaunManager.resize(this.width, this.height);
@@ -231,7 +238,7 @@ export class DragonsVsLeprechaunsGame {
       this.gameOver('All dragons eliminated!');
     }
 
-    // Defensive DOM updates with strict null safety!
+    // Defensive DOM updates
     const evo = this.dragonSquad.getEvolutionTier();
     const nextBossDist = Math.max(0, Math.round(((this.lastBossMilestone + 1) * 200) - this.distance));
 
@@ -294,7 +301,7 @@ export class DragonsVsLeprechaunsGame {
     this.ctx.restore();
   }
 
-  run(time = 0) {
+  run(time = performance.now()) {
     if (this.state === 'GAMEOVER') return;
     const dt = Math.min((time - this.lastTime) / 1000, 0.05);
     this.lastTime = time;

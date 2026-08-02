@@ -39,51 +39,59 @@ function init() {
   }
 
   function launchGame() {
-    if (currentGame && typeof currentGame.destroy === 'function') {
-      currentGame.destroy();
-    }
+    try {
+      if (currentGame && typeof currentGame.destroy === 'function') {
+        currentGame.destroy();
+      }
 
-    const menuScreen = document.getElementById('menu-screen');
-    const gameoverScreen = document.getElementById('gameover-screen');
-    const pauseScreen = document.getElementById('pause-screen');
-    const hudScreen = document.getElementById('hud');
+      const menuScreen = document.getElementById('menu-screen');
+      const gameoverScreen = document.getElementById('gameover-screen');
+      const pauseScreen = document.getElementById('pause-screen');
+      const hudScreen = document.getElementById('hud');
 
-    if (menuScreen) menuScreen.classList.add('hidden');
-    if (gameoverScreen) gameoverScreen.classList.add('hidden');
-    if (pauseScreen) pauseScreen.classList.add('hidden');
+      if (menuScreen) menuScreen.classList.add('hidden');
+      if (gameoverScreen) gameoverScreen.classList.add('hidden');
+      if (pauseScreen) pauseScreen.classList.add('hidden');
 
-    if (activeMode === 'potholes') {
-      currentGame = new Game(canvas);
-      currentGame.startRun();
-      currentGame.run();
-    } else if (activeMode === 'dragons') {
-      if (hudScreen) hudScreen.classList.remove('hidden');
-      currentGame = new DragonsVsLeprechaunsGame(canvas, () => {
-        returnToMainMenu();
-      });
-      currentGame.run();
+      if (activeMode === 'potholes') {
+        currentGame = new Game(canvas);
+        currentGame.startRun();
+        currentGame.run();
+      } else if (activeMode === 'dragons') {
+        if (hudScreen) hudScreen.classList.remove('hidden');
+        currentGame = new DragonsVsLeprechaunsGame(canvas, () => {
+          returnToMainMenu();
+        });
+        currentGame.run();
+      }
+    } catch (err) {
+      console.error('Launch game error:', err);
     }
   }
 
   function returnToMainMenu() {
-    if (currentGame && typeof currentGame.destroy === 'function') {
-      currentGame.destroy();
-    }
-
-    const menuScreen = document.getElementById('menu-screen');
-    const pauseScreen = document.getElementById('pause-screen');
-    const gameoverScreen = document.getElementById('gameover-screen');
-    const hudScreen = document.getElementById('hud');
-
-    if (pauseScreen) pauseScreen.classList.add('hidden');
-    if (gameoverScreen) gameoverScreen.classList.add('hidden');
-    if (hudScreen) hudScreen.classList.add('hidden');
-    if (menuScreen) menuScreen.classList.remove('hidden');
-
     try {
-      const previewGame = new Game(canvas);
-      previewGame.draw();
-    } catch (err) {}
+      if (currentGame && typeof currentGame.destroy === 'function') {
+        currentGame.destroy();
+      }
+
+      const menuScreen = document.getElementById('menu-screen');
+      const pauseScreen = document.getElementById('pause-screen');
+      const gameoverScreen = document.getElementById('gameover-screen');
+      const hudScreen = document.getElementById('hud');
+
+      if (pauseScreen) pauseScreen.classList.add('hidden');
+      if (gameoverScreen) gameoverScreen.classList.add('hidden');
+      if (hudScreen) hudScreen.classList.add('hidden');
+      if (menuScreen) menuScreen.classList.remove('hidden');
+
+      try {
+        const previewGame = new Game(canvas);
+        previewGame.draw();
+      } catch (err) {}
+    } catch (err) {
+      console.error('Return to main menu error:', err);
+    }
   }
 
   if (btnStart) btnStart.onclick = launchGame;
