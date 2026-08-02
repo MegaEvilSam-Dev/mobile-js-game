@@ -39,29 +39,23 @@ export class HUD {
   }
 
   bindEvents() {
-    const startBtn = document.getElementById('start-btn');
-    if (startBtn) startBtn.onclick = () => this.onStartRun();
-
-    const restartBtn = document.getElementById('restart-btn');
-    if (restartBtn) restartBtn.onclick = () => this.onRestartRun();
-
     const resumeBtn = document.getElementById('shop-resume-btn') || document.getElementById('resume-btn');
-    if (resumeBtn) resumeBtn.onclick = () => this.onResumeRun();
+    if (resumeBtn) resumeBtn.addEventListener('click', () => this.onResumeRun());
 
     const pauseResume = document.getElementById('pause-resume-btn');
-    if (pauseResume) pauseResume.onclick = () => this.onResumeRun();
+    if (pauseResume) pauseResume.addEventListener('click', () => this.onResumeRun());
 
-    if (this.soundBtn) this.soundBtn.onclick = () => this.onToggleSound();
+    if (this.soundBtn) this.soundBtn.addEventListener('click', () => this.onToggleSound());
 
     // Shop Buy Buttons
     document.querySelectorAll('.buy-btn').forEach((btn) => {
-      btn.onclick = (e) => {
+      btn.addEventListener('click', (e) => {
         try {
           const item = e.target.getAttribute('data-item');
           const cost = parseInt(e.target.getAttribute('data-cost'), 10);
           this.onBuyItem(item, cost);
         } catch (err) {}
-      };
+      });
     });
   }
 
