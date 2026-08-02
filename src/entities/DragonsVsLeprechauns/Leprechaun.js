@@ -31,10 +31,12 @@ export class LeprechaunManager {
     const y = -100;
 
     const progress = Math.min(1.0, distance / 250);
-    const isGoldTank = Math.random() < (0.2 + progress * 0.25);
-    const minSize = Math.floor(6 + progress * 8);
-    const maxSize = Math.floor(12 + progress * 16);
-    const mobSize = minSize + Math.floor(Math.random() * (maxSize - minSize));
+    const isGoldTank = distance > 80 && (Math.random() < (0.2 + progress * 0.25));
+
+    // Gentle starting enemy level: tiny 2 to 4 unit warm-up mobs at the start!
+    const minSize = Math.floor(2 + progress * 10);
+    const maxSize = Math.floor(4 + progress * 18);
+    const mobSize = Math.max(2, minSize + Math.floor(Math.random() * Math.max(1, maxSize - minSize)));
 
     const units = [];
     for (let k = 0; k < mobSize; k++) {

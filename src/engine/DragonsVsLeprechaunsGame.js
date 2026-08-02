@@ -168,11 +168,12 @@ export class DragonsVsLeprechaunsGame {
       this.leprechaunManager.spawnEnemyArmyMob(this.speed, this.distance);
     }
 
-    // Spawn Multiplier Gates
+    // Spawn Multiplier Gates (Guaranteed positive start gate for warm-up)
     this.gateTimer += dt;
-    if (this.gateTimer > 4.2) {
+    if (this.gateTimer > 3.8) {
+      const isFirst = (this.distance < 40 && this.gateManager.gatePairs.length === 0);
       this.gateTimer = 0;
-      this.gateManager.spawnGatePair(this.dragonSquad.squadSize);
+      this.gateManager.spawnGatePair(this.dragonSquad.squadSize, isFirst);
     }
 
     // Spawn Power-Ups
