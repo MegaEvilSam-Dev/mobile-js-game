@@ -160,20 +160,22 @@ export class DragonsVsLeprechaunsGame {
       return;
     }
 
-    // Spawn Enemy Mobs (Interval speeds up slightly as distance increases)
-    this.spawnTimer += dt;
-    const enemySpawnInterval = Math.max(1.2, 2.2 - (this.distance / 250) * 0.8);
-    if (this.spawnTimer > enemySpawnInterval) {
-      this.spawnTimer = 0;
-      this.leprechaunManager.spawnEnemyArmyMob(this.speed, this.distance);
-    }
-
-    // Spawn Multiplier Gates (Guaranteed positive start gate for warm-up)
+    // 1. Spawn Multiplier Gates FIRST (Arrives immediately at start distance 15m for guaranteed squad upgrade!)
     this.gateTimer += dt;
-    if (this.gateTimer > 3.8) {
-      const isFirst = (this.distance < 40 && this.gateManager.gatePairs.length === 0);
+    if (this.gateTimer > 1.8) {
+      const isFirst = (this.gateManager.gatePairs.length === 0);
       this.gateTimer = 0;
       this.gateManager.spawnGatePair(this.dragonSquad.squadSize, isFirst);
+    }
+
+    // 2. Spawn Enemy Mobs (Delayed until distance > 70m AFTER the first upgrade gate!)
+    if (this.distance > 70) {
+      this.spawnTimer += dt;
+      const enemySpawnInterval = Math.max(1.4, 2.4 - (this.distance / 250) * 0.8);
+      if (this.spawnTimer > enemySpawnInterval) {
+        this.spawnTimer = 0;
+        this.leprechaunManager.spawnEnemyArmyMob(this.speed, this.distance);
+      }
     }
 
     // Spawn Power-Ups

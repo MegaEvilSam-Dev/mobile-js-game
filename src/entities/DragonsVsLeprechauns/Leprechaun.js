@@ -20,7 +20,7 @@ export class LeprechaunManager {
     this.boss = null;
   }
 
-  // Spawn Total War Red Leprechaun Army Mob with distance-scaled difficulty!
+  // Spawn Enemy Mobs (Fragile 1-hit basic units at early distances)
   spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -31,17 +31,22 @@ export class LeprechaunManager {
     const y = -100;
 
     const progress = Math.min(1.0, distance / 250);
-    const isGoldTank = distance > 80 && (Math.random() < (0.2 + progress * 0.25));
+    const isGoldTank = distance > 120 && (Math.random() < 0.25);
 
-    // Gentle starting enemy level: tiny 2 to 4 unit warm-up mobs at the start!
-    const minSize = Math.floor(2 + progress * 10);
-    const maxSize = Math.floor(4 + progress * 18);
-    const mobSize = Math.max(2, minSize + Math.floor(Math.random() * Math.max(1, maxSize - minSize)));
+    // Warm-up starting level: 1 to 3 fragile leprechauns at early distances!
+    let mobSize = 2;
+    if (distance < 80) {
+      mobSize = Math.floor(Math.random() * 2) + 1; // 1 or 2 fragile units!
+    } else {
+      const minSize = Math.floor(3 + progress * 8);
+      const maxSize = Math.floor(6 + progress * 14);
+      mobSize = minSize + Math.floor(Math.random() * (maxSize - minSize));
+    }
 
     const units = [];
     for (let k = 0; k < mobSize; k++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = Math.sqrt(Math.random()) * Math.min(38, 10 + mobSize * 0.7);
+      const radius = Math.sqrt(Math.random()) * Math.min(35, 8 + mobSize * 0.6);
       units.push({
         offsetX: Math.cos(angle) * radius,
         offsetY: Math.sin(angle) * (radius * 0.6)
@@ -55,13 +60,12 @@ export class LeprechaunManager {
       mobSize,
       units,
       isGoldTank,
-      hpPerUnit: isGoldTank ? 4 : 1,
+      hpPerUnit: isGoldTank ? 3 : 1, // Basic units are 1-hit!
       escaped: false
     });
   }
 
-  // Spawn End-of-Level Giant Leprechaun King Boss
-  spawnBoss(hp = 250) {
+  spawnBoss(hp = 80) {
     this.boss = {
       x: this.canvasWidth / 2,
       y: 120,
@@ -73,9 +77,8 @@ export class LeprechaunManager {
   }
 
   update(speed, dragonSquad, particlePool, onEliminateArmy, onArmyClash, onArmyEscaped, onBossDefeated) {
-    // 1. Update Boss Arena Phase (if Boss is active)
+    // 1. Boss Arena Phase
     if (this.boss && this.boss.active) {
-      // Check fireball hits on Boss
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.hypot(fb.x - this.boss.x, fb.y - this.boss.y) < this.boss.size / 2 + fb.radius) {
@@ -97,45 +100,49 @@ export class LeprechaunManager {
       return;
     }
 
-    // 2. Update Regular Army Mobs
+    // 2. Regular Enemy Mobs
     for (let i = this.armyMobs.length - 1; i >= 0; i--) {
       const mob = this.armyMobs[i];
       mob.y += mob.isGoldTank ? (speed * 0.75) : speed;
 
-      // Fireball hits
+      // Fireball hits -> INSTANT 1-HIT ELIMINATION OF BASIC UNITS!
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.abs(fb.x - mob.x) < 45 && Math.abs(fb.y - mob.y) < 40) {
           dragonSquad.fireballs.splice(j, 1);
-          mob.hpPerUnit -= 1;
+          
+          if (mob.isGoldTank) {
+            mob.hpPerUnit -= 1;
+            if (mob.hpPerUnit <= 0) {
+              mob.hpPerUnit = 3;
+              mob.mobSize -= 1;
+              if (mob.units.length > 0) mob.units.pop();
+            }
+          } else {
+            // Basic enemy: INSTANT 1-HIT DESTRUCTION PER FIREBALL!
+            mob.mobSize -= 1;
+            if (mob.units.length > 0) mob.units.pop();
+          }
 
-          particlePool.spawnExplosion(fb.x, fb.y, '#ef4444', 2);
+          particlePool.spawnExplosion(fb.x, fb.y, '#ef4444', 3);
           particlePool.spawnDamagePopup(fb.x, fb.y - 10, '-1', '#f87171');
 
-          if (mob.hpPerUnit <= 0) {
-            mob.hpPerUnit = mob.isGoldTank ? 4 : 1;
-            mob.mobSize -= 1;
-            if (mob.units.length > mob.mobSize) mob.units.pop();
-
-            if (mob.mobSize <= 0) {
-              onEliminateArmy(mob);
-              this.armyMobs.splice(i, 1);
-              break;
-            }
+          if (mob.mobSize <= 0) {
+            onEliminateArmy(mob);
+            this.armyMobs.splice(i, 1);
+            break;
           }
         }
       }
 
-      // Total War Mob Clash with Dragon Squad
-      if (Math.abs(mob.y - dragonSquad.y) < 45 && mob.lane === dragonSquad.lane) {
-        const clashRate = 2;
-        const clashAmount = Math.min(mob.mobSize, Math.min(dragonSquad.squadSize, clashRate));
-
+      // Total War Mob Clash
+      if (Math.abs(mob.y - dragonSquad.y) < 40 && mob.lane === dragonSquad.lane) {
+        const clashAmount = Math.min(mob.mobSize, Math.min(dragonSquad.squadSize, 2));
         mob.mobSize -= clashAmount;
         dragonSquad.removeDragons(clashAmount);
 
-        particlePool.triggerShake(5, 0.15);
-        particlePool.spawnExplosion(mob.x, mob.y, '#f59e0b', 6);
+        particlePool.triggerShake(4, 0.12);
+        particlePool.spawnExplosion(mob.x, mob.y, '#f59e0b', 5);
 
         while (mob.units.length > mob.mobSize) mob.units.pop();
         onArmyClash();
@@ -161,12 +168,10 @@ export class LeprechaunManager {
   draw(ctx) {
     ctx.save();
 
-    // 1. Draw Boss if Active
     if (this.boss && this.boss.active) {
       ctx.save();
       ctx.translate(this.boss.x, this.boss.y);
 
-      // Giant Crown
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath();
       ctx.moveTo(-24, -36);
@@ -178,19 +183,16 @@ export class LeprechaunManager {
       ctx.lineTo(24, -36);
       ctx.fill();
 
-      // Giant Leprechaun Head
       ctx.fillStyle = '#15803d';
       ctx.beginPath();
       ctx.arc(0, 0, this.boss.size / 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Gold Pot Armor
       ctx.fillStyle = '#eab308';
       ctx.beginPath();
       ctx.arc(0, 10, 16, 0, Math.PI * 2);
       ctx.fill();
 
-      // Giant Health Bar Overhead
       const hpPercent = Math.max(0, this.boss.hp / this.boss.maxHp);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
       ctx.fillRect(-60, -85, 120, 12);
@@ -205,7 +207,6 @@ export class LeprechaunManager {
       ctx.restore();
     }
 
-    // 2. Draw Regular Army Mobs
     for (const mob of this.armyMobs) {
       ctx.save();
       ctx.translate(mob.x, mob.y);
@@ -220,7 +221,6 @@ export class LeprechaunManager {
         ctx.fillRect(u.offsetX - 5, u.offsetY - 11, 10, 4);
       }
 
-      // Army Badge Counter
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.strokeStyle = mob.isGoldTank ? '#eab308' : '#ef4444';
       ctx.lineWidth = 2;
