@@ -25,7 +25,7 @@ export class LeprechaunManager {
     this.bosses = [];
   }
 
-  // Spawn Numerous Small Individual Enemies & Squad Mobs!
+  // Spawn Small Individual Enemies & Mobs
   spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -38,7 +38,6 @@ export class LeprechaunManager {
     const progress = Math.min(2.0, distance / 500);
     const isGoldTank = distance > 100 && (Math.random() < (0.2 + progress * 0.15));
 
-    // More small individual enemies (1 to 4 units) for active rapid shooting!
     let mobSize = 1;
     if (Math.random() < 0.6) {
       mobSize = Math.floor(Math.random() * 2) + 1; // 1 or 2 small individual units!
@@ -85,18 +84,19 @@ export class LeprechaunManager {
       maxHp: hp,
       size: 70,
       active: true,
-      isEngaged: false
+      isEngaged: false,
+      attackTimer: 0
     });
   }
 
-  update(speed, dragonSquad, particlePool, onEliminateArmy, onArmyClash, onArmyEscaped, onBossDefeated) {
+  update(dt, speed, dragonSquad, particlePool, onEliminateArmy, onArmyClash, onArmyEscaped, onBossDefeated) {
     let isAnyBossEngaged = false;
 
     // 1. Update Lane Bosses
     for (let i = this.bosses.length - 1; i >= 0; i--) {
       const boss = this.bosses[i];
 
-      if (!boss.isEngaged && Math.abs(boss.y - dragonSquad.y) < 40 && boss.lane === dragonSquad.lane) {
+      if (!boss.isEngaged && Math.abs(boss.y - dragonSquad.y) < 45 && boss.lane === dragonSquad.lane) {
         boss.isEngaged = true;
         particlePool.triggerShake(6, 0.3);
       }
@@ -104,10 +104,21 @@ export class LeprechaunManager {
       if (boss.isEngaged) {
         isAnyBossEngaged = true;
         boss.y = dragonSquad.y - 35;
+
+        // BOSS CONTINUES TO ATTACK PLAYER UNTIL DESTROYED!
+        boss.attackTimer += dt;
+        if (boss.attackTimer > 0.45) {
+          boss.attackTimer = 0;
+          dragonSquad.removeDragons(1);
+          particlePool.triggerShake(4, 0.12);
+          particlePool.spawnExplosion(dragonSquad.x, dragonSquad.y, '#ef4444', 5);
+          particlePool.spawnDamagePopup(dragonSquad.x, dragonSquad.y - 30, '-1 🐉', '#ef4444');
+        }
       } else {
         boss.y += speed * 0.45;
       }
 
+      // Fireball hits on Boss
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.hypot(fb.x - boss.x, fb.y - boss.y) < boss.size / 2 + fb.radius + 10) {
@@ -132,7 +143,7 @@ export class LeprechaunManager {
       }
     }
 
-    // 2. Update Regular Mobs & Individual Enemies
+    // 2. Update Regular Mobs
     const activeSpeed = isAnyBossEngaged ? 0 : speed;
     for (let i = this.armyMobs.length - 1; i >= 0; i--) {
       const mob = this.armyMobs[i];
@@ -251,7 +262,7 @@ export class LeprechaunManager {
       ctx.arc(0, 5, 24, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#c2410c'; // Braided ginger beard
+      ctx.fillStyle = '#c2410c';
       ctx.beginPath();
       ctx.arc(0, 14, 22, 0, Math.PI);
       ctx.fill();
@@ -290,36 +301,34 @@ export class LeprechaunManager {
         ctx.translate(u.offsetX, u.offsetY);
 
         if (mob.isGoldTank) {
-          // Iron-Hooped Cauldron Tank
           ctx.fillStyle = '#0f172a';
           ctx.beginPath();
           ctx.arc(0, 2, 12, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#eab308'; // Gleaming Gold Coins
+          ctx.fillStyle = '#eab308';
           ctx.beginPath();
           ctx.arc(0, -3, 9, 0, Math.PI);
           ctx.fill();
         } else {
-          // Realistic Individual Leprechaun Warrior
-          ctx.fillStyle = '#c2410c'; // Ginger beard
+          ctx.fillStyle = '#c2410c';
           ctx.beginPath();
           ctx.arc(0, 4, 8, 0, Math.PI);
           ctx.fill();
 
-          ctx.fillStyle = '#fed7aa'; // Realistic Skin
+          ctx.fillStyle = '#fed7aa';
           ctx.beginPath();
           ctx.arc(0, 0, 7, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#047857'; // Forest Green Coat & Hat
+          ctx.fillStyle = '#047857';
           ctx.fillRect(-6, -11, 12, 6);
           ctx.fillRect(-8, -5, 16, 2);
 
-          ctx.fillStyle = '#f59e0b'; // Gold Hat Buckle
+          ctx.fillStyle = '#f59e0b';
           ctx.fillRect(-3, -9, 6, 4);
 
-          ctx.fillStyle = '#0f172a'; // Eyes
+          ctx.fillStyle = '#0f172a';
           ctx.beginPath();
           ctx.arc(-2.5, -1, 1.5, 0, Math.PI * 2);
           ctx.arc(2.5, -1, 1.5, 0, Math.PI * 2);
@@ -329,7 +338,6 @@ export class LeprechaunManager {
         ctx.restore();
       }
 
-      // Mob Size Badge
       ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
       ctx.strokeStyle = mob.isGoldTank ? '#facc15' : '#ef4444';
       ctx.lineWidth = 2;

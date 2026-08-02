@@ -15,61 +15,71 @@ export class GateManager {
     this.gatePairs = [];
   }
 
-  // Spawns Multiplier Gate Pairs with 70% Negative Gate frequency!
+  // Spawns Multiplier Gates: Single Lane Gates & Gate Pairs with 85%+ Negative Gate frequency!
   spawnGatePair(currentDragonCount = 5, isFirstGate = false) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const halfWidth = roadWidth / 2;
 
-    let op1 = '+';
-    let val1 = 4;
-    let op2 = 'x';
-    let val2 = 2;
-    let isPos1 = true;
-    let isPos2 = true;
+    const isSingleGate = !isFirstGate && (Math.random() < 0.55); // 55% chance for a Single Lane Gate!
+    const activeGates = [];
 
     if (!isFirstGate) {
-      const isNegativePair = Math.random() < 0.72; // 72% chance of including a Negative Gate!
-      const posLane = Math.floor(Math.random() * 2);
+      if (isSingleGate) {
+        // Single Gate occupying only 1 lane
+        const lane = Math.floor(Math.random() * 2);
+        const x = roadX + (lane * halfWidth) + (halfWidth / 2);
+        const isNeg = Math.random() < 0.85; // 85% chance for Negative Gate!
+        
+        const op = isNeg ? (Math.random() < 0.25 ? '÷' : '-') : '+';
+        const val = isNeg ? (op === '÷' ? 2 : Math.floor(Math.random() * 10) + 5) : (Math.floor(Math.random() * 5) + 3);
 
-      // Positive Gate
-      const isMult = Math.random() < 0.3 && currentDragonCount < 35;
-      const pOp = isMult ? 'x' : '+';
-      const pVal = isMult ? 2 : (Math.floor(Math.random() * 5) + 3);
-
-      // Negative Gate (-5 to -15 or ÷2)
-      const isDiv = Math.random() < 0.25 && currentDragonCount > 15;
-      const nOp = isDiv ? '÷' : '-';
-      const nVal = isDiv ? 2 : (Math.floor(Math.random() * 10) + 5);
-
-      if (isNegativePair) {
-        if (posLane === 0) {
-          op1 = pOp; val1 = pVal; isPos1 = true;
-          op2 = nOp; val2 = nVal; isPos2 = false;
-        } else {
-          op1 = nOp; val1 = nVal; isPos1 = false;
-          op2 = pOp; val2 = pVal; isPos2 = true;
-        }
+        activeGates.push({
+          lane,
+          x,
+          width: halfWidth - 8,
+          op,
+          val,
+          isPositive: !isNeg,
+          passed: false
+        });
       } else {
-        // Both Positive Choice
-        op1 = '+'; val1 = Math.floor(Math.random() * 4) + 3; isPos1 = true;
-        op2 = '+'; val2 = Math.floor(Math.random() * 6) + 4; isPos2 = true;
+        // Gate Pair occupying both lanes
+        const posLane = Math.floor(Math.random() * 2);
+        for (let l = 0; l < 2; l++) {
+          const x = roadX + (l * halfWidth) + (halfWidth / 2);
+          const isPos = (l === posLane) && (Math.random() < 0.35); // 85% negative across pair
+          
+          const op = isPos ? '+' : (Math.random() < 0.2 ? '÷' : '-');
+          const val = isPos ? (Math.floor(Math.random() * 5) + 3) : (op === '÷' ? 2 : Math.floor(Math.random() * 10) + 5);
+
+          activeGates.push({
+            lane: l,
+            x,
+            width: halfWidth - 8,
+            op,
+            val,
+            isPositive: isPos,
+            passed: false
+          });
+        }
       }
     } else {
-      // First Gate is a modest Warm-Up Boost (+4 or x2)
-      op1 = '+'; val1 = 4; isPos1 = true;
-      op2 = 'x'; val2 = 2; isPos2 = true;
+      // First Warm-Up Gate: Single Positive Gate (+4) in Lane 0
+      const x = roadX + (halfWidth / 2);
+      activeGates.push({
+        lane: 0,
+        x,
+        width: halfWidth - 8,
+        op: '+',
+        val: 4,
+        isPositive: true,
+        passed: false
+      });
     }
 
     const y = -90;
-
-    this.gatePairs.push({
-      y,
-      gates: [
-        { lane: 0, x: roadX + halfWidth / 2, width: halfWidth - 8, op: op1, val: val1, isPositive: isPos1, passed: false },
-        { lane: 1, x: roadX + halfWidth + halfWidth / 2, width: halfWidth - 8, op: op2, val: val2, isPositive: isPos2, passed: false }
-      ]
-    });
+    this.gatePairs.push({ y, gates: activeGates });
   }
 
   update(speed, dragonSquad, particlePool, onHitGate) {
@@ -149,7 +159,7 @@ export class GateManager {
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         ctx.font = '800 9px Outfit';
-        ctx.fillText(g.isPositive ? 'DYNAMIC MULTIPLIER 🚀' : 'SHOOT TO REDUCE! 💥', 0, 16);
+        ctx.fillText(g.isPositive ? 'MULTIPLIER 🚀' : 'SHOOT TO REDUCE! 💥', 0, 16);
 
         ctx.restore();
       }

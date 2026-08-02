@@ -139,8 +139,9 @@ export class DragonsVsLeprechaunsGame {
     this.particlePool.update(dt);
     this.dragonSquad.update(dt);
 
-    // Update Enemy Mobs & Lane Bosses
+    // Update Enemy Mobs & Lane Bosses (Bosses continue attacking player every 0.45s until destroyed)
     const isBossEngaged = this.leprechaunManager.update(
+      dt,
       this.speed,
       this.dragonSquad,
       this.particlePool,
