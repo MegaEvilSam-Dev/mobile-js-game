@@ -20,8 +20,8 @@ export class LeprechaunManager {
     this.boss = null;
   }
 
-  // Spawn Enemy Army Mobs (Standard & Gold Pot Tanks)
-  spawnEnemyArmyMob(speed) {
+  // Spawn Total War Red Leprechaun Army Mob with distance-scaled difficulty!
+  spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
@@ -30,8 +30,11 @@ export class LeprechaunManager {
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
     const y = -100;
 
-    const isGoldTank = Math.random() < 0.35; // 35% chance for Gold Pot Tank Army!
-    const mobSize = isGoldTank ? (6 + Math.floor(Math.random() * 8)) : (10 + Math.floor(Math.random() * 20));
+    const progress = Math.min(1.0, distance / 250);
+    const isGoldTank = Math.random() < (0.2 + progress * 0.25);
+    const minSize = Math.floor(6 + progress * 8);
+    const maxSize = Math.floor(12 + progress * 16);
+    const mobSize = minSize + Math.floor(Math.random() * (maxSize - minSize));
 
     const units = [];
     for (let k = 0; k < mobSize; k++) {

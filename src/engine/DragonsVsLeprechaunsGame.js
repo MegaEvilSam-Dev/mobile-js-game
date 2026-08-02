@@ -16,7 +16,7 @@ export class DragonsVsLeprechaunsGame {
     this.height = canvas.clientHeight;
 
     this.state = 'RUNNING';
-    this.speed = 3.6; // Comfortable cruising speed
+    this.speed = 3.2; // Starts warm-up speed
     this.distance = 0;
     this.score = 0;
     this.enemiesDefeated = 0;
@@ -90,7 +90,11 @@ export class DragonsVsLeprechaunsGame {
   triggerBossArenaPhase() {
     this.state = 'BOSS_ARENA';
     this.dragonSquad.isBossBreathAttack = true;
-    this.leprechaunManager.spawnBoss(80); // Rebalanced Boss HP to 80 for fun, epic victory!
+    
+    // Dynamically scale boss HP relative to squad size for an accurate climax!
+    const bossHp = Math.max(60, Math.min(200, Math.round(this.dragonSquad.squadSize * 3.5)));
+    this.leprechaunManager.spawnBoss(bossHp);
+    
     this.soundSynth.playDragonRoar();
     this.particlePool.triggerShake(8, 0.4);
   }
@@ -138,26 +142,30 @@ export class DragonsVsLeprechaunsGame {
         () => {},
         () => {},
         () => {},
-        () => this.victory() // Boss Defeated!
+        () => this.victory()
       );
       return;
     }
 
-    // --- TRACK RUNNER PHASE ---
+    // --- ACCURATE INCREASING DIFFICULTY scaling ---
     this.distance += dt * 35;
     this.score += dt * 25;
 
-    // Quick Boss Route: Transition to Boss Arena at 250m!
+    // Smooth Progressive Speed Scaling (3.2 ➔ 4.8)
+    this.speed = 3.2 + Math.min(1.6, (this.distance / 250) * 1.6);
+
+    // Transition to Boss Arena at 250m
     if (this.distance >= 250) {
       this.triggerBossArenaPhase();
       return;
     }
 
-    // Spawn Enemy Mobs
+    // Spawn Enemy Mobs (Interval speeds up slightly as distance increases)
     this.spawnTimer += dt;
-    if (this.spawnTimer > 2.0) {
+    const enemySpawnInterval = Math.max(1.2, 2.2 - (this.distance / 250) * 0.8);
+    if (this.spawnTimer > enemySpawnInterval) {
       this.spawnTimer = 0;
-      this.leprechaunManager.spawnEnemyArmyMob(this.speed);
+      this.leprechaunManager.spawnEnemyArmyMob(this.speed, this.distance);
     }
 
     // Spawn Multiplier Gates
@@ -169,7 +177,7 @@ export class DragonsVsLeprechaunsGame {
 
     // Spawn Power-Ups
     this.powerUpTimer += dt;
-    if (this.powerUpTimer > 6.0) {
+    if (this.powerUpTimer > 6.5) {
       this.powerUpTimer = 0;
       this.powerUpManager.spawnPowerUp(this.speed);
     }
