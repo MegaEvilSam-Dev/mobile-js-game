@@ -14,6 +14,8 @@ function init() {
   const instDragons = document.getElementById('inst-dragons');
   const btnStart = document.getElementById('start-btn');
   const btnRestart = document.getElementById('restart-btn');
+  const btnPauseMenu = document.getElementById('pause-menu-btn');
+  const btnGoMenu = document.getElementById('go-menu-btn');
 
   // Mode Selection Tabs
   if (btnPotholes && btnDragons) {
@@ -43,10 +45,12 @@ function init() {
 
     const menuScreen = document.getElementById('menu-screen');
     const gameoverScreen = document.getElementById('gameover-screen');
+    const pauseScreen = document.getElementById('pause-screen');
     const hudScreen = document.getElementById('hud');
 
     if (menuScreen) menuScreen.classList.add('hidden');
     if (gameoverScreen) gameoverScreen.classList.add('hidden');
+    if (pauseScreen) pauseScreen.classList.add('hidden');
 
     if (activeMode === 'potholes') {
       currentGame = new Game(canvas);
@@ -55,14 +59,37 @@ function init() {
     } else if (activeMode === 'dragons') {
       if (hudScreen) hudScreen.classList.remove('hidden');
       currentGame = new DragonsVsLeprechaunsGame(canvas, () => {
-        if (menuScreen) menuScreen.classList.remove('hidden');
+        returnToMainMenu();
       });
       currentGame.run();
     }
   }
 
+  function returnToMainMenu() {
+    if (currentGame && typeof currentGame.destroy === 'function') {
+      currentGame.destroy();
+    }
+
+    const menuScreen = document.getElementById('menu-screen');
+    const pauseScreen = document.getElementById('pause-screen');
+    const gameoverScreen = document.getElementById('gameover-screen');
+    const hudScreen = document.getElementById('hud');
+
+    if (pauseScreen) pauseScreen.classList.add('hidden');
+    if (gameoverScreen) gameoverScreen.classList.add('hidden');
+    if (hudScreen) hudScreen.classList.add('hidden');
+    if (menuScreen) menuScreen.classList.remove('hidden');
+
+    try {
+      const previewGame = new Game(canvas);
+      previewGame.draw();
+    } catch (err) {}
+  }
+
   if (btnStart) btnStart.onclick = launchGame;
   if (btnRestart) btnRestart.onclick = launchGame;
+  if (btnPauseMenu) btnPauseMenu.onclick = returnToMainMenu;
+  if (btnGoMenu) btnGoMenu.onclick = returnToMainMenu;
 
   // Boot background canvas preview
   try {

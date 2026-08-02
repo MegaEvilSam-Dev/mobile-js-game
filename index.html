@@ -14,7 +14,7 @@
     <div id="canvas-container">
       <canvas id="game-canvas"></canvas>
 
-      <!-- HUD Overlay -->
+      <!-- Sleek Non-Obstructive Top HUD Header Bar -->
       <div id="hud" class="hud-container hidden">
         <div class="hud-panel">
           <div class="hud-stat">
@@ -22,16 +22,14 @@
             <div>
               <div class="hud-label">DODGED</div>
               <div id="hud-potholes" class="hud-value">0</div>
-              <div id="hud-next-milestone" class="hud-sub">/25 to Boss</div>
             </div>
           </div>
 
           <div class="hud-stat">
             <span class="hud-icon">🥮</span>
             <div>
-              <div class="hud-label">MOONPIES</div>
+              <div class="hud-label">SQUAD / MOONPIES</div>
               <div id="hud-moonpies" class="hud-value">0</div>
-              <div id="hud-ammo-count" class="hud-sub">10 Ammo</div>
             </div>
           </div>
 
@@ -123,18 +121,21 @@
           <button id="start-btn" class="primary-btn">DRIVE & DASH ▶</button>
           
           <div class="controls-hint">
-            <span>💻 Desktop: <strong>A/D or Arrows</strong> • <strong>Space</strong> Firing • <strong>P</strong> Pause</span>
-            <span>📱 Mobile: <strong>Buttons/Swipe</strong> to Move • <strong>Tap Screen</strong> to Fire</span>
+            <span>💻 Desktop: <strong>A/D or Drag Mouse</strong> • <strong>P</strong> Pause</span>
+            <span>📱 Mobile: <strong>Touch Drag</strong> to Move • <strong>Tap Screen</strong> to Fire</span>
           </div>
         </div>
       </div>
 
-      <!-- Pause Screen Modal -->
+      <!-- Pause Screen Modal with Return to Game Selection -->
       <div id="pause-screen" class="overlay-screen hidden">
         <div class="menu-content glass-card">
           <h2 class="menu-subtitle">GAME PAUSED ⏸️</h2>
           <p class="inst-text">Take a breather on the I-10 Bayway!</p>
-          <button id="pause-resume-btn" class="primary-btn">RESUME RUN ▶</button>
+          <div class="button-group">
+            <button id="pause-resume-btn" class="primary-btn">RESUME RUN ▶</button>
+            <button id="pause-menu-btn" class="secondary-btn">MAIN MENU 🏠</button>
+          </div>
         </div>
       </div>
 
@@ -191,7 +192,7 @@
         </div>
       </div>
 
-      <!-- Game Over Modal -->
+      <!-- Game Over Modal with Return to Game Selection -->
       <div id="gameover-screen" class="overlay-screen hidden">
         <div class="menu-content glass-card">
           <h2 class="game-title error-text">RUN OVER! 💥</h2>
@@ -210,13 +211,12 @@
               <span>Final Score:</span>
               <strong id="go-score">0</strong>
             </div>
-            <div class="score-row">
-              <span>Best Score:</span>
-              <strong id="go-highscore">0</strong>
-            </div>
           </div>
 
-          <button id="restart-btn" class="primary-btn">PLAY AGAIN 🔄</button>
+          <div class="button-group">
+            <button id="restart-btn" class="primary-btn">PLAY AGAIN 🔄</button>
+            <button id="go-menu-btn" class="secondary-btn">MAIN MENU 🏠</button>
+          </div>
         </div>
       </div>
     </div>
