@@ -25,7 +25,7 @@ export class LeprechaunManager {
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
     const y = -100;
 
-    const mobSize = 15 + Math.floor(Math.random() * 35); // Army mob of 15-50 enemy units!
+    const mobSize = 8 + Math.floor(Math.random() * 16); // Balanced army mob of 8 to 24 enemy units!
 
     // Build visual unit array for enemy mob
     const units = [];

@@ -7,7 +7,7 @@ export class InputHandler {
 
     this.touchStartX = 0;
     this.touchStartY = 0;
-    this.minSwipeDistance = 30;
+    this.minSwipeDistance = 25;
 
     this.keydownListener = (e) => this.handleKeyDown(e);
     this.touchStartListener = (e) => this.handleTouchStart(e);
@@ -23,24 +23,32 @@ export class InputHandler {
 
       const key = e.key.toLowerCase();
 
+      // Steering
       if (key === 'arrowleft' || key === 'a') {
         this.onLeft();
       } else if (key === 'arrowright' || key === 'd') {
         this.onRight();
-      } else if (key === ' ' || key === 'space' || key === 'arrowup' || key === 'w') {
+      } 
+      // Action / Fire / Jump
+      else if (key === ' ' || key === 'space' || key === 'arrowup' || key === 'w' || key === 'enter') {
         if (e.cancelable) e.preventDefault();
         this.onAction();
-      } else if (key === 'p') {
+      } 
+      // Pause Toggles
+      else if (key === 'p' || key === 'escape') {
         if (e.cancelable) e.preventDefault();
         this.onPauseToggle();
       }
+      // Any other unmapped key press is safely ignored without throwing errors
     } catch (err) {
-      // Safe catch to guarantee zero unmapped key crashes
+      // Safe catch boundary guarantees zero crash on unmapped button presses
     }
   }
 
   initKeyboard() {
-    window.addEventListener('keydown', this.keydownListener);
+    try {
+      window.addEventListener('keydown', this.keydownListener);
+    } catch (err) {}
   }
 
   handleTouchStart(e) {
@@ -75,32 +83,34 @@ export class InputHandler {
   }
 
   initTouch() {
-    const canvasContainer = document.getElementById('canvas-container');
-    if (canvasContainer) {
-      canvasContainer.addEventListener('touchstart', this.touchStartListener, { passive: true });
-      canvasContainer.addEventListener('touchend', this.touchEndListener, { passive: true });
-    }
+    try {
+      const canvasContainer = document.getElementById('canvas-container');
+      if (canvasContainer) {
+        canvasContainer.addEventListener('touchstart', this.touchStartListener, { passive: true });
+        canvasContainer.addEventListener('touchend', this.touchEndListener, { passive: true });
+      }
 
-    const btnLeft = document.getElementById('touch-left');
-    const btnRight = document.getElementById('touch-right');
+      const btnLeft = document.getElementById('touch-left');
+      const btnRight = document.getElementById('touch-right');
 
-    if (btnLeft) {
-      btnLeft.onclick = (e) => {
-        try {
-          if (e) e.stopPropagation();
-          this.onLeft();
-        } catch (err) {}
-      };
-    }
+      if (btnLeft) {
+        btnLeft.onclick = (e) => {
+          try {
+            if (e) e.stopPropagation();
+            this.onLeft();
+          } catch (err) {}
+        };
+      }
 
-    if (btnRight) {
-      btnRight.onclick = (e) => {
-        try {
-          if (e) e.stopPropagation();
-          this.onRight();
-        } catch (err) {}
-      };
-    }
+      if (btnRight) {
+        btnRight.onclick = (e) => {
+          try {
+            if (e) e.stopPropagation();
+            this.onRight();
+          } catch (err) {}
+        };
+      }
+    } catch (err) {}
   }
 
   destroy() {

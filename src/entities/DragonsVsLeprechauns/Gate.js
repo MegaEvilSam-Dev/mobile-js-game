@@ -21,12 +21,12 @@ export class GateManager {
     const roadWidth = this.canvasWidth - 80;
     const halfWidth = roadWidth / 2;
 
-    const ops = ['+', 'x', '-', 'x'];
+    const ops = ['+', 'x', '+', 'x'];
     const op1 = ops[Math.floor(Math.random() * ops.length)];
-    const val1 = (op1 === 'x') ? (Math.floor(Math.random() * 2) + 2) : (Math.floor(Math.random() * 15) + 5);
+    const val1 = (op1 === 'x') ? 2 : (Math.floor(Math.random() * 10) + 5);
 
     const op2 = ops[Math.floor(Math.random() * ops.length)];
-    const val2 = (op2 === 'x') ? (Math.floor(Math.random() * 3) + 2) : (Math.floor(Math.random() * 20) + 10);
+    const val2 = (op2 === 'x') ? 3 : (Math.floor(Math.random() * 15) + 10);
 
     const y = -90;
 

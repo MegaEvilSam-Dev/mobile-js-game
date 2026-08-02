@@ -9,7 +9,7 @@ export class DragonSquad {
     this.targetX = canvasWidth / 2;
     this.y = canvasHeight - 160;
 
-    this.squadSize = 5; // Starts with a mini mob of 5 dragons!
+    this.squadSize = 10; // Starts with a balanced mob of 10 dragons!
     this.units = [];
     this.fireballs = [];
     this.shootTimer = 0;
