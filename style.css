@@ -116,6 +116,19 @@ html, body {
   text-transform: uppercase;
 }
 
+.dev-note-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-top: 2px;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
 .main-title {
   font-weight: 900;
   font-size: 1.7rem;
