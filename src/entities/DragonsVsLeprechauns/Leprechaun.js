@@ -11,7 +11,6 @@ export class LeprechaunManager {
     this.canvasWidth = width;
     this.canvasHeight = height;
 
-    // Recalculate lane-bound X positions for active bosses on resize
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
@@ -26,7 +25,6 @@ export class LeprechaunManager {
     this.bosses = [];
   }
 
-  // Spawn Enemy Mobs
   spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -70,7 +68,6 @@ export class LeprechaunManager {
     });
   }
 
-  // Spawn Boss in a Specific Lane (Strictly Lane 0 or Lane 1, NEVER centered!)
   spawnBoss(hp = 60) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -97,13 +94,11 @@ export class LeprechaunManager {
     for (let i = this.bosses.length - 1; i >= 0; i--) {
       const boss = this.bosses[i];
 
-      // Check if boss meets player line in same lane
       if (!boss.isEngaged && Math.abs(boss.y - dragonSquad.y) < 40 && boss.lane === dragonSquad.lane) {
         boss.isEngaged = true;
         particlePool.triggerShake(6, 0.3);
       }
 
-      // If engaged, pause downward movement (stops at player line)
       if (boss.isEngaged) {
         isAnyBossEngaged = true;
         boss.y = dragonSquad.y - 35;
@@ -111,7 +106,6 @@ export class LeprechaunManager {
         boss.y += speed * 0.45;
       }
 
-      // Fireball hits on Boss
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.hypot(fb.x - boss.x, fb.y - boss.y) < boss.size / 2 + fb.radius + 10) {
@@ -136,13 +130,12 @@ export class LeprechaunManager {
       }
     }
 
-    // 2. Update Regular Mobs (only move if boss not engaged)
+    // 2. Update Regular Mobs
     const activeSpeed = isAnyBossEngaged ? 0 : speed;
     for (let i = this.armyMobs.length - 1; i >= 0; i--) {
       const mob = this.armyMobs[i];
       mob.y += mob.isGoldTank ? (activeSpeed * 0.75) : activeSpeed;
 
-      // Fireball hits
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.abs(fb.x - mob.x) < 45 && Math.abs(fb.y - mob.y) < 40) {
@@ -171,7 +164,6 @@ export class LeprechaunManager {
         }
       }
 
-      // Total War Mob Clash
       if (Math.abs(mob.y - dragonSquad.y) < 40 && mob.lane === dragonSquad.lane) {
         const clashAmount = Math.min(mob.mobSize, Math.min(dragonSquad.squadSize, 2));
         mob.mobSize -= clashAmount;
@@ -189,7 +181,6 @@ export class LeprechaunManager {
         }
       }
 
-      // Escaped Army
       if (!mob.escaped && mob.y > dragonSquad.y + 40) {
         mob.escaped = true;
         onArmyEscaped(mob.mobSize);
@@ -206,33 +197,55 @@ export class LeprechaunManager {
   draw(ctx) {
     ctx.save();
 
-    // Draw Lane-Bound Bosses
+    // 1. Draw Cute Cartoon Lane Bosses
     for (const boss of this.bosses) {
       ctx.save();
       ctx.translate(boss.x, boss.y);
 
-      // Crown
+      // Cartoon Crown
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath();
-      ctx.moveTo(-24, -36);
-      ctx.lineTo(-32, -65);
-      ctx.lineTo(-12, -45);
-      ctx.lineTo(0, -70);
-      ctx.lineTo(12, -45);
-      ctx.lineTo(32, -65);
-      ctx.lineTo(24, -36);
+      ctx.moveTo(-20, -38);
+      ctx.lineTo(-28, -62);
+      ctx.lineTo(-10, -45);
+      ctx.lineTo(0, -68);
+      ctx.lineTo(10, -45);
+      ctx.lineTo(28, -62);
+      ctx.lineTo(20, -38);
       ctx.fill();
 
-      // Boss Head
+      // Cartoon Green Top Hat
       ctx.fillStyle = '#15803d';
+      ctx.fillRect(-22, -38, 44, 25);
+      ctx.fillRect(-30, -15, 60, 6);
+
+      // Gold Hat Buckle
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-8, -25, 16, 10);
+
+      // Cute Cartoon Head & Face
+      ctx.fillStyle = '#fed7aa';
       ctx.beginPath();
-      ctx.arc(0, 0, boss.size / 2, 0, Math.PI * 2);
+      ctx.arc(0, 5, 24, 0, Math.PI * 2);
       ctx.fill();
 
-      // Golden Medallion
-      ctx.fillStyle = '#eab308';
+      // Silly Orange Beard
+      ctx.fillStyle = '#ea580c';
       ctx.beginPath();
-      ctx.arc(0, 10, 16, 0, Math.PI * 2);
+      ctx.arc(0, 14, 22, 0, Math.PI);
+      ctx.fill();
+
+      // Cute Big Eyes
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(-8, 2, 5, 0, Math.PI * 2);
+      ctx.arc(8, 2, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(-8, 2, 2.5, 0, Math.PI * 2);
+      ctx.arc(8, 2, 2.5, 0, Math.PI * 2);
       ctx.fill();
 
       // Health Bar
@@ -250,23 +263,55 @@ export class LeprechaunManager {
       ctx.restore();
     }
 
-    // Draw Regular Army Mobs
+    // 2. Draw Cute Cartoon Leprechaun Mobs & Gold Pot Tanks
     for (const mob of this.armyMobs) {
       ctx.save();
       ctx.translate(mob.x, mob.y);
 
       for (const u of mob.units) {
-        ctx.fillStyle = mob.isGoldTank ? '#eab308' : '#ef4444';
-        ctx.beginPath();
-        ctx.arc(u.offsetX, u.offsetY, mob.isGoldTank ? 9 : 7, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.save();
+        ctx.translate(u.offsetX, u.offsetY);
 
-        ctx.fillStyle = mob.isGoldTank ? '#ca8a04' : '#991b1b';
-        ctx.fillRect(u.offsetX - 5, u.offsetY - 11, 10, 4);
+        if (mob.isGoldTank) {
+          // Cartoon Gold Pot Tank
+          ctx.fillStyle = '#1e293b';
+          ctx.beginPath();
+          ctx.arc(0, 2, 11, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath();
+          ctx.arc(0, -3, 8, 0, Math.PI);
+          ctx.fill();
+        } else {
+          // Cartoon Cute Leprechaun
+          ctx.fillStyle = '#ea580c'; // Orange beard
+          ctx.beginPath();
+          ctx.arc(0, 4, 8, 0, Math.PI);
+          ctx.fill();
+
+          ctx.fillStyle = '#fed7aa'; // Face
+          ctx.beginPath();
+          ctx.arc(0, 0, 7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#15803d'; // Green Top Hat
+          ctx.fillRect(-6, -11, 12, 6);
+          ctx.fillRect(-8, -5, 16, 2);
+
+          ctx.fillStyle = '#ffffff'; // Eyes
+          ctx.beginPath();
+          ctx.arc(-2.5, -1, 1.8, 0, Math.PI * 2);
+          ctx.arc(2.5, -1, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
       }
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.strokeStyle = mob.isGoldTank ? '#eab308' : '#ef4444';
+      // Mob Size Badge
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.strokeStyle = mob.isGoldTank ? '#facc15' : '#ef4444';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(-24, -40, 48, 22, 6);

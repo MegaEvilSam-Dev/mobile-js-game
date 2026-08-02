@@ -15,7 +15,7 @@ export class GateManager {
     this.gatePairs = [];
   }
 
-  // Spawns Multiplier Gate Pairs with guaranteed positive start gate
+  // Spawns Multiplier Gate Pairs with choice between Positive and Negative Gates!
   spawnGatePair(currentDragonCount = 10, isFirstGate = false) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -25,20 +25,34 @@ export class GateManager {
     let val1 = 15;
     let op2 = 'x';
     let val2 = 2;
+    let isPos1 = true;
+    let isPos2 = true;
 
     if (!isFirstGate) {
-      const ops = ['+', 'x', '+', 'x'];
-      op1 = ops[Math.floor(Math.random() * ops.length)];
-      val1 = (op1 === 'x') ? 2 : (Math.floor(Math.random() * 10) + 5);
+      const posOps = ['+', 'x'];
+      const negOps = ['-'];
 
-      op2 = ops[Math.floor(Math.random() * ops.length)];
-      val2 = (op2 === 'x') ? 3 : (Math.floor(Math.random() * 15) + 10);
+      const posLane = Math.floor(Math.random() * 2);
+
+      // Positive Gate
+      const pOp = posOps[Math.floor(Math.random() * posOps.length)];
+      const pVal = (pOp === 'x') ? 3 : (Math.floor(Math.random() * 15) + 10);
+
+      // Negative Gate (forces player to shoot it to make it positive or avoid it!)
+      const nOp = negOps[0];
+      const nVal = Math.floor(Math.random() * 12) + 8; // e.g. -8 to -20
+
+      if (posLane === 0) {
+        op1 = pOp; val1 = pVal; isPos1 = true;
+        op2 = nOp; val2 = nVal; isPos2 = false;
+      } else {
+        op1 = nOp; val1 = nVal; isPos1 = false;
+        op2 = pOp; val2 = pVal; isPos2 = true;
+      }
     } else {
-      // First Gate is GUARANTEED MASSIVE POSITIVE BOOST (+20 or x3)
-      op1 = '+';
-      val1 = 20;
-      op2 = 'x';
-      val2 = 3;
+      // First Gate is GUARANTEED MASSIVE POSITIVE BOOST
+      op1 = '+'; val1 = 20; isPos1 = true;
+      op2 = 'x'; val2 = 3; isPos2 = true;
     }
 
     const y = -90;
@@ -46,8 +60,8 @@ export class GateManager {
     this.gatePairs.push({
       y,
       gates: [
-        { lane: 0, x: roadX + halfWidth / 2, width: halfWidth - 8, op: op1, val: val1, isPositive: true, passed: false },
-        { lane: 1, x: roadX + halfWidth + halfWidth / 2, width: halfWidth - 8, op: op2, val: val2, isPositive: true, passed: false }
+        { lane: 0, x: roadX + halfWidth / 2, width: halfWidth - 8, op: op1, val: val1, isPositive: isPos1, passed: false },
+        { lane: 1, x: roadX + halfWidth + halfWidth / 2, width: halfWidth - 8, op: op2, val: val2, isPositive: isPos2, passed: false }
       ]
     });
   }
@@ -63,10 +77,20 @@ export class GateManager {
           const fb = dragonSquad.fireballs[j];
           if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - pair.y) < 25) {
             dragonSquad.fireballs.splice(j, 1);
-            g.val += 1;
+            
+            if (g.op === '+' || g.op === 'x') {
+              g.val += 1;
+            } else if (g.op === '-') {
+              g.val -= 1;
+              if (g.val <= 0) {
+                g.op = '+';
+                g.val = Math.abs(g.val) + 1;
+                g.isPositive = true;
+              }
+            }
 
-            particlePool.spawnExplosion(fb.x, fb.y, '#10b981', 3);
-            particlePool.spawnDamagePopup(fb.x, fb.y - 10, '+1', '#60a5fa');
+            particlePool.spawnExplosion(fb.x, fb.y, g.isPositive ? '#10b981' : '#ef4444', 4);
+            particlePool.spawnDamagePopup(fb.x, fb.y - 10, '+1', g.isPositive ? '#60a5fa' : '#f87171');
           }
         }
 
@@ -74,7 +98,7 @@ export class GateManager {
         if (!g.passed && Math.abs(pair.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
           g.passed = true;
           pair.gates.forEach(gate => gate.passed = true);
-          particlePool.spawnExplosion(g.x, pair.y, '#10b981', 15);
+          particlePool.spawnExplosion(g.x, pair.y, g.isPositive ? '#10b981' : '#ef4444', 15);
           onHitGate(g);
           this.gatePairs.splice(i, 1);
           break;
@@ -96,10 +120,10 @@ export class GateManager {
         ctx.save();
         ctx.translate(g.x, pair.y);
 
-        const color = '#10b981';
+        const color = g.isPositive ? '#10b981' : '#ef4444';
         const label = `${g.op}${g.val}`;
 
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.fillStyle = g.isPositive ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.5)';
         ctx.strokeStyle = color;
         ctx.lineWidth = 4;
 
@@ -116,7 +140,7 @@ export class GateManager {
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         ctx.font = '800 9px Outfit';
-        ctx.fillText('DYNAMIC MULTIPLIER 🚀', 0, 16);
+        ctx.fillText(g.isPositive ? 'DYNAMIC MULTIPLIER 🚀' : 'SHOOT TO REDUCE! 💥', 0, 16);
 
         ctx.restore();
       }
