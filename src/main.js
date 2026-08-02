@@ -17,25 +17,30 @@ function init() {
   const btnPauseMenu = document.getElementById('pause-menu-btn');
   const btnGoMenu = document.getElementById('go-menu-btn');
 
-  // Mode Selection Tabs
-  if (btnPotholes && btnDragons) {
-    btnPotholes.onclick = (e) => {
-      if (e) e.stopPropagation();
-      activeMode = 'potholes';
-      btnPotholes.classList.add('active');
-      btnDragons.classList.remove('active');
+  function selectMode(mode) {
+    activeMode = mode;
+    if (mode === 'potholes') {
+      if (btnPotholes) btnPotholes.classList.add('active');
+      if (btnDragons) btnDragons.classList.remove('active');
       if (instPotholes) instPotholes.classList.remove('hidden');
       if (instDragons) instDragons.classList.add('hidden');
-    };
-
-    btnDragons.onclick = (e) => {
-      if (e) e.stopPropagation();
-      activeMode = 'dragons';
-      btnDragons.classList.add('active');
-      btnPotholes.classList.remove('active');
+    } else if (mode === 'dragons') {
+      if (btnDragons) btnDragons.classList.add('active');
+      if (btnPotholes) btnPotholes.classList.remove('active');
       if (instDragons) instDragons.classList.remove('hidden');
       if (instPotholes) instPotholes.classList.add('hidden');
-    };
+    }
+  }
+
+  // Bind Mode Selection on Click, Touch, and Hover
+  if (btnPotholes && btnDragons) {
+    btnPotholes.onclick = (e) => { if (e) e.stopPropagation(); selectMode('potholes'); };
+    btnPotholes.onmouseenter = () => selectMode('potholes');
+    btnPotholes.onfocus = () => selectMode('potholes');
+
+    btnDragons.onclick = (e) => { if (e) e.stopPropagation(); selectMode('dragons'); };
+    btnDragons.onmouseenter = () => selectMode('dragons');
+    btnDragons.onfocus = () => selectMode('dragons');
   }
 
   function launchGame() {
