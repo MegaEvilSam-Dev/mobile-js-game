@@ -68,72 +68,57 @@
         <button id="touch-right" class="touch-btn">▶</button>
       </div>
 
-      <!-- Ultra Clean & Stylish Game Selection Screen -->
+      <!-- Ultra Readable & Distinct Game Selection Screen -->
       <div id="menu-screen" class="overlay-screen">
         <div class="menu-card glass-card">
           <div class="menu-header">
-            <div class="badge-pill">⚜️ SELECT GAME MODE ⚜️</div>
-            <h1 class="main-title">MOBILE BAY<br><span class="gradient-text">ARCADE RUNNER</span></h1>
+            <div class="badge-pill">⚜️ SELECT A GAME TO PLAY ⚜️</div>
+            <h1 class="main-title">MOBILE BAY<br><span class="gradient-text">ARCADE CENTER</span></h1>
           </div>
 
-          <!-- Game Mode Selector Grid -->
-          <div class="mode-grid">
-            <button id="mode-potholes-btn" class="mode-card active" data-mode="potholes">
-              <div class="mode-card-header">
-                <span class="mode-icon">🥮</span>
-                <div class="mode-title-group">
-                  <span class="mode-tag">MODE 1</span>
-                  <span class="mode-name">Pothole Panic</span>
+          <!-- Two Separate Large Game Cards -->
+          <div class="games-selection-container">
+            
+            <!-- GAME 1 CARD: POTHOLE PANIC -->
+            <div id="mode-potholes-btn" class="game-choice-card active-potholes active" data-mode="potholes">
+              <div class="game-card-header">
+                <div class="game-card-icon-badge amber-badge">🥮</div>
+                <div class="game-card-titles">
+                  <span class="game-badge-tag amber-tag">GAME 1 • HIGHWAY RUNNER</span>
+                  <h2 class="game-card-name">Pothole Panic</h2>
                 </div>
+                <span class="status-indicator">SELECTED ✓</span>
               </div>
-              <p class="mode-desc">Dodge highway craters • Collect Golden Moonpie Ammo • Battle Gator-Dragon Boss</p>
-            </button>
+              
+              <div class="game-features-list">
+                <div class="feat-item"><span class="feat-bullet">🕳️</span> Dodge highway craters on I-10 Bayway</div>
+                <div class="feat-item"><span class="feat-bullet">🥮</span> Collect Golden Moonpies for 10 Ammo Shots</div>
+                <div class="feat-item"><span class="feat-bullet">🐊</span> Battle the Delta Gator-Dragon Boss</div>
+              </div>
+            </div>
 
-            <button id="mode-dragons-btn" class="mode-card" data-mode="dragons">
-              <div class="mode-card-header">
-                <span class="mode-icon">🐉</span>
-                <div class="mode-title-group">
-                  <span class="mode-tag">MODE 2</span>
-                  <span class="mode-name">Dragons vs Leprechauns</span>
+            <!-- GAME 2 CARD: DRAGONS VS LEPRECHAUNS -->
+            <div id="mode-dragons-btn" class="game-choice-card emerald-theme" data-mode="dragons">
+              <div class="game-card-header">
+                <div class="game-card-icon-badge emerald-badge">🐉</div>
+                <div class="game-card-titles">
+                  <span class="game-badge-tag emerald-tag">GAME 2 • MULTIPLIER SHOOTER</span>
+                  <h2 class="game-card-name">Dragons vs Leprechauns</h2>
                 </div>
+                <span class="status-indicator">SELECT</span>
               </div>
-              <p class="mode-desc">Dynamic Math Multiplier Gates • Trailing Dragon Squad • Lane-Bound Boss Fights</p>
-            </button>
+
+              <div class="game-features-list">
+                <div class="feat-item"><span class="feat-bullet">🎯</span> Shoot (+, x) gates to multiply Dragon Squad</div>
+                <div class="feat-item"><span class="feat-bullet">🔴</span> Shoot (-15, -20) negative gates or steer away</div>
+                <div class="feat-item"><span class="feat-bullet">👑</span> Battle Lane-Bound Leprechaun Kings</div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Dynamic Active Mode Feature Description Card -->
-          <div id="inst-potholes" class="feature-box">
-            <div class="feature-row">
-              <span class="feature-emoji">🕳️</span>
-              <span><strong>Dodge Potholes:</strong> Switch lanes at smooth highway speeds!</span>
-            </div>
-            <div class="feature-row">
-              <span class="feature-emoji">🥮</span>
-              <span><strong>Moonpie Ammo:</strong> Golden Moonpies grant <strong>10 Ammo Shots</strong>!</span>
-            </div>
-            <div class="feature-row">
-              <span class="feature-emoji">🐊</span>
-              <span><strong>Gator-Dragon Boss:</strong> Throw Moonpies to defeat the Bay Boss!</span>
-            </div>
-          </div>
-
-          <div id="inst-dragons" class="feature-box hidden">
-            <div class="feature-row">
-              <span class="feature-emoji">🎯</span>
-              <span><strong>Multiplier Gates:</strong> Shoot (+, x) gates to multiply your Dragon Squad!</span>
-            </div>
-            <div class="feature-row">
-              <span class="feature-emoji">🔴</span>
-              <span><strong>Negative Gates:</strong> Shoot (-15, -20) gates to reduce penalty or steer away!</span>
-            </div>
-            <div class="feature-row">
-              <span class="feature-emoji">👑</span>
-              <span><strong>Lane-Bound Bosses:</strong> Face Lane-Bound Leprechaun Kings in epic battles!</span>
-            </div>
-          </div>
-
-          <!-- Play Action Button -->
-          <button id="start-btn" class="play-btn">START RUN ▶</button>
+          <!-- Giant High-Visibility Play Button -->
+          <button id="start-btn" class="super-play-btn">PLAY SELECTED GAME ▶</button>
           
           <div class="control-footer">
             <span>💻 Mouse / A & D to Steering • 📱 Touch Drag for Smooth Steering</span>

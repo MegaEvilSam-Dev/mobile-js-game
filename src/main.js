@@ -10,8 +10,6 @@ function init() {
 
   const btnPotholes = document.getElementById('mode-potholes-btn');
   const btnDragons = document.getElementById('mode-dragons-btn');
-  const instPotholes = document.getElementById('inst-potholes');
-  const instDragons = document.getElementById('inst-dragons');
   const btnStart = document.getElementById('start-btn');
   const btnRestart = document.getElementById('restart-btn');
   const btnPauseMenu = document.getElementById('pause-menu-btn');
@@ -19,28 +17,32 @@ function init() {
 
   function selectMode(mode) {
     activeMode = mode;
+
+    const statusPotholes = btnPotholes ? btnPotholes.querySelector('.status-indicator') : null;
+    const statusDragons = btnDragons ? btnDragons.querySelector('.status-indicator') : null;
+
     if (mode === 'potholes') {
       if (btnPotholes) btnPotholes.classList.add('active');
       if (btnDragons) btnDragons.classList.remove('active');
-      if (instPotholes) instPotholes.classList.remove('hidden');
-      if (instDragons) instDragons.classList.add('hidden');
+      if (statusPotholes) statusPotholes.innerText = 'SELECTED ✓';
+      if (statusDragons) statusDragons.innerText = 'SELECT';
+      if (btnStart) btnStart.innerText = 'PLAY POTHOLE PANIC ▶';
     } else if (mode === 'dragons') {
       if (btnDragons) btnDragons.classList.add('active');
       if (btnPotholes) btnPotholes.classList.remove('active');
-      if (instDragons) instDragons.classList.remove('hidden');
-      if (instPotholes) instPotholes.classList.add('hidden');
+      if (statusDragons) statusDragons.innerText = 'SELECTED ✓';
+      if (statusPotholes) statusPotholes.innerText = 'SELECT';
+      if (btnStart) btnStart.innerText = 'PLAY DRAGONS VS LEPRECHAUNS ▶';
     }
   }
 
-  // Bind Mode Selection on Click, Touch, and Hover
+  // Bind Selection Events for both separate game cards
   if (btnPotholes && btnDragons) {
     btnPotholes.onclick = (e) => { if (e) e.stopPropagation(); selectMode('potholes'); };
     btnPotholes.onmouseenter = () => selectMode('potholes');
-    btnPotholes.onfocus = () => selectMode('potholes');
 
     btnDragons.onclick = (e) => { if (e) e.stopPropagation(); selectMode('dragons'); };
     btnDragons.onmouseenter = () => selectMode('dragons');
-    btnDragons.onfocus = () => selectMode('dragons');
   }
 
   function launchGame() {
