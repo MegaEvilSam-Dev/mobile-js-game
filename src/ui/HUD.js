@@ -17,6 +17,7 @@ export class HUD {
     this.elPotholes = document.getElementById('hud-potholes');
     this.elNextMilestone = document.getElementById('hud-next-milestone');
     this.elMoonpies = document.getElementById('hud-moonpies');
+    this.elAmmoCount = document.getElementById('hud-ammo-count');
     this.elIntervalMoonpies = document.getElementById('hud-interval-moonpies');
     this.elScore = document.getElementById('hud-score');
     this.elPowerupBar = document.getElementById('powerup-status');
@@ -115,12 +116,18 @@ export class HUD {
     this.gameoverScreen.classList.remove('hidden');
   }
 
-  updateHUD(potholes, moonpies, intervalMoonpies, score, player) {
+  updateHUD(potholes, moonpies, ammo, intervalMoonpies, score, player) {
     this.elPotholes.innerText = potholes;
-    const nextShop = (Math.floor(potholes / 100) + 1) * 100;
-    this.elNextMilestone.innerText = `/ ${nextShop} (Shop)`;
+    let nextShop = 25;
+    if (potholes >= 25) {
+      nextShop = (Math.floor(potholes / 25) + 1) * 25;
+    }
+    this.elNextMilestone.innerText = `/ ${nextShop} (Milestone)`;
 
     this.elMoonpies.innerText = moonpies;
+    if (this.elAmmoCount) {
+      this.elAmmoCount.innerText = `(${ammo} Shots)`;
+    }
     this.elIntervalMoonpies.innerText = `This interval: ${intervalMoonpies}/3`;
 
     this.elScore.innerText = Math.round(score).toString().padStart(5, '0');

@@ -17,15 +17,16 @@ export class Game {
 
     this.state = 'MENU';
 
-    this.speed = 6;
+    this.speed = 4.5; // Comfortable highway cruising speed
     this.score = 0;
     this.potholesDodged = 0;
     this.goldenMoonpies = 0;
+    this.moonpieAmmo = 10; // 10 shots per moonpie! Starts with 10 free shots.
     this.highScore = parseFloat(localStorage.getItem('pothole_panic_highscore') || '0');
 
     this.lastShopMilestone = 0;
     this.lastBossMilestone = 0;
-    this.bossCount = 0; // Number of boss fights encountered
+    this.bossCount = 0;
 
     // Subsystems
     this.road = new RoadRenderer(this.width, this.height);
@@ -43,7 +44,6 @@ export class Game {
       () => this.toggleSound()
     );
 
-    // Bind Throw Moonpie button in HUD
     const btnThrow = document.getElementById('throw-moonpie-btn');
     if (btnThrow) {
       btnThrow.addEventListener('click', (e) => {
@@ -74,12 +74,12 @@ export class Game {
   handleThrowMoonpie() {
     if (this.state !== 'BOSS_FIGHT' || !this.dragonBoss.active) return;
 
-    if (this.goldenMoonpies > 0) {
-      this.goldenMoonpies--; // Consume 1 Golden Moonpie
+    if (this.moonpieAmmo > 0) {
+      this.moonpieAmmo--; // Consume 1 ammo shot out of 10 per moonpie
       this.dragonBoss.throwMoonpie(this.player.x, this.player.y);
       this.soundSynth.playJump();
     } else {
-      // Free throw if player has 0 moonpies so boss fight is never blocked
+      // Emergency shot if out of ammo
       this.dragonBoss.throwMoonpie(this.player.x, this.player.y);
       this.soundSynth.playJump();
     }
@@ -111,7 +111,8 @@ export class Game {
     this.score = 0;
     this.potholesDodged = 0;
     this.goldenMoonpies = 0;
-    this.speed = 6;
+    this.moonpieAmmo = 10; // Starts with 10 ammo shots!
+    this.speed = 4.5;
     this.lastShopMilestone = 0;
     this.lastBossMilestone = 0;
     this.bossCount = 0;
@@ -161,7 +162,7 @@ export class Game {
           this.player.empBlasters = 0;
         }
       }
-    }, 2000);
+    }, 1800);
   }
 
   handleBuyItem(item, cost) {
@@ -201,19 +202,18 @@ export class Game {
   update(dt) {
     if (this.state !== 'RUNNING' && this.state !== 'BOSS_FIGHT') return;
 
-    // Accumulate score (frozen if dodge penalty active!)
     if (!(this.state === 'BOSS_FIGHT' && this.dragonBoss.penaltyActive)) {
-      this.score += dt * 10 * (this.speed / 5);
+      this.score += dt * 10 * (this.speed / 4.5);
     }
 
     this.player.update(dt);
 
-    this.speed = 6 + Math.min(10, this.potholesDodged * 0.08);
+    // Smooth & gentle speed curve (max speed capped at 8.5)
+    this.speed = 4.5 + Math.min(4.0, this.potholesDodged * 0.03);
     this.road.update(this.speed);
 
-    // Spawn Potholes (respecting 1st boss fight 0-pothole rule!)
     this.spawnTimer += dt;
-    if (this.spawnTimer > 1.2 / (this.speed / 6)) {
+    if (this.spawnTimer > 1.4 / (this.speed / 4.5)) {
       this.spawnTimer = 0;
       const isBoss = (this.state === 'BOSS_FIGHT');
       this.potholeManager.spawnPothole(this.speed, isBoss, this.bossCount);
@@ -244,6 +244,7 @@ export class Game {
       this.player,
       (moonpie) => {
         this.goldenMoonpies++;
+        this.moonpieAmmo += 10; // +10 Ammo Shots per Golden Moonpie collected!
         this.score += 500;
         this.soundSynth.playMoonpieChime();
       }
@@ -262,11 +263,10 @@ export class Game {
           }
         },
         (bonusPts) => {
-          // HIT DRAGON BONUS
           this.score += bonusPts;
         },
         () => {
-          // MISS DRAGON PENALTY (10s dodge)
+          // Miss penalty
         },
         this.soundSynth
       );
@@ -275,7 +275,8 @@ export class Game {
 
       if (!this.dragonBoss.active) {
         this.hud.hideBossHUD();
-        this.goldenMoonpies += 3;
+        this.goldenMoonpies += 2;
+        this.moonpieAmmo += 10; // Bonus ammo reward!
         this.score += 2500;
         this.state = 'RUNNING';
       }
@@ -284,6 +285,7 @@ export class Game {
     this.hud.updateHUD(
       this.potholesDodged,
       this.goldenMoonpies,
+      this.moonpieAmmo,
       this.moonpieManager.intervalMoonpiesSpawned,
       this.score,
       this.player
@@ -291,17 +293,18 @@ export class Game {
   }
 
   checkMilestones() {
-    const shopMilestone = Math.floor(this.potholesDodged / 50);
-    const bossMilestone = Math.floor(this.potholesDodged / 100);
+    // Quick routes: 1st boss at 25 potholes, 2nd boss at 50 potholes, 3rd+ at 75, 100...
+    const bossMilestone = Math.floor(this.potholesDodged / 25);
+    const shopMilestone = Math.floor(this.potholesDodged / 25);
 
-    if (bossMilestone > this.lastBossMilestone && this.potholesDodged >= 100) {
+    if (bossMilestone > this.lastBossMilestone && this.potholesDodged >= 25) {
       this.lastBossMilestone = bossMilestone;
       this.lastShopMilestone = shopMilestone;
       this.triggerBossFight();
       return;
     }
 
-    if (shopMilestone > this.lastShopMilestone && this.potholesDodged >= 50) {
+    if (shopMilestone > this.lastShopMilestone && this.potholesDodged >= 25 && this.state !== 'BOSS_FIGHT') {
       this.lastShopMilestone = shopMilestone;
       this.triggerShop();
     }
