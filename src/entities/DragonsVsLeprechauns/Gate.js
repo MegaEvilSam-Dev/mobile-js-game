@@ -15,41 +15,49 @@ export class GateManager {
     this.gatePairs = [];
   }
 
-  // Spawns Balanced Arcade Multiplier Gate Pairs
+  // Spawns Multiplier Gate Pairs with 70% Negative Gate frequency!
   spawnGatePair(currentDragonCount = 5, isFirstGate = false) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const halfWidth = roadWidth / 2;
 
     let op1 = '+';
-    let val1 = 5;
+    let val1 = 4;
     let op2 = 'x';
     let val2 = 2;
     let isPos1 = true;
     let isPos2 = true;
 
     if (!isFirstGate) {
+      const isNegativePair = Math.random() < 0.72; // 72% chance of including a Negative Gate!
       const posLane = Math.floor(Math.random() * 2);
 
-      // Balanced Positive Gate (+3 to +8, or x2)
-      const isMult = Math.random() < 0.35 && currentDragonCount < 40;
+      // Positive Gate
+      const isMult = Math.random() < 0.3 && currentDragonCount < 35;
       const pOp = isMult ? 'x' : '+';
-      const pVal = isMult ? 2 : (Math.floor(Math.random() * 6) + 3);
+      const pVal = isMult ? 2 : (Math.floor(Math.random() * 5) + 3);
 
-      // Balanced Negative Gate (-4 to -8)
-      const nOp = '-';
-      const nVal = Math.floor(Math.random() * 5) + 4;
+      // Negative Gate (-5 to -15 or ÷2)
+      const isDiv = Math.random() < 0.25 && currentDragonCount > 15;
+      const nOp = isDiv ? '÷' : '-';
+      const nVal = isDiv ? 2 : (Math.floor(Math.random() * 10) + 5);
 
-      if (posLane === 0) {
-        op1 = pOp; val1 = pVal; isPos1 = true;
-        op2 = nOp; val2 = nVal; isPos2 = false;
+      if (isNegativePair) {
+        if (posLane === 0) {
+          op1 = pOp; val1 = pVal; isPos1 = true;
+          op2 = nOp; val2 = nVal; isPos2 = false;
+        } else {
+          op1 = nOp; val1 = nVal; isPos1 = false;
+          op2 = pOp; val2 = pVal; isPos2 = true;
+        }
       } else {
-        op1 = nOp; val1 = nVal; isPos1 = false;
-        op2 = pOp; val2 = pVal; isPos2 = true;
+        // Both Positive Choice
+        op1 = '+'; val1 = Math.floor(Math.random() * 4) + 3; isPos1 = true;
+        op2 = '+'; val2 = Math.floor(Math.random() * 6) + 4; isPos2 = true;
       }
     } else {
-      // First Gate is a Balanced Warm-Up Boost (+5 or x2)
-      op1 = '+'; val1 = 5; isPos1 = true;
+      // First Gate is a modest Warm-Up Boost (+4 or x2)
+      op1 = '+'; val1 = 4; isPos1 = true;
       op2 = 'x'; val2 = 2; isPos2 = true;
     }
 
@@ -85,6 +93,9 @@ export class GateManager {
                 g.val = Math.abs(g.val) + 1;
                 g.isPositive = true;
               }
+            } else if (g.op === '÷') {
+              g.op = '-';
+              g.val = 3;
             }
 
             particlePool.spawnExplosion(fb.x, fb.y, g.isPositive ? '#10b981' : '#ef4444', 4);

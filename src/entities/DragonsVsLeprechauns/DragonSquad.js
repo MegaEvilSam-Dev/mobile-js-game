@@ -87,9 +87,9 @@ export class DragonSquad {
   }
 
   getEvolutionTier() {
-    if (this.squadSize >= 25) return { name: 'ANCIENT DRAGON', scale: 1.45, color: '#10b981', body: '#047857', horn: '#f59e0b', eye: '#fef08a' };
-    if (this.squadSize >= 10) return { name: 'DRAKE DRAGON', scale: 1.25, color: '#34d399', body: '#059669', horn: '#fbbf24', eye: '#ffffff' };
-    return { name: 'HATCHLING', scale: 1.0, color: '#6ee7b7', body: '#10b981', horn: '#fef08a', eye: '#ffffff' };
+    if (this.squadSize >= 25) return { name: 'ANCIENT DRAGON', scale: 1.45, primary: '#047857', secondary: '#065f46', horn: '#d97706', eye: '#ef4444' };
+    if (this.squadSize >= 10) return { name: 'DRAKE DRAGON', scale: 1.25, primary: '#059669', secondary: '#047857', horn: '#f59e0b', eye: '#facc15' };
+    return { name: 'HATCHLING', scale: 1.0, primary: '#10b981', secondary: '#059669', horn: '#fef08a', eye: '#38bdf8' };
   }
 
   rebuildMob() {
@@ -123,7 +123,6 @@ export class DragonSquad {
       unit.currY += (targetUnitY - unit.currY) * 0.35;
     }
 
-    // Fireball Salvo System (Throttled for balanced arcade feel)
     this.shootTimer += dt;
     let baseCooldown = Math.max(0.12, 0.28 - (Math.min(15, this.squadSize) * 0.008));
     if (this.speedShootTimer > 0) baseCooldown /= 2;
@@ -164,42 +163,38 @@ export class DragonSquad {
 
     ctx.save();
 
-    // 1. Draw Trailing Cartoon Dragon Clones
+    // 1. Draw Realistic Trailing Squad Clones
     for (const unit of this.units) {
       ctx.save();
       ctx.translate(unit.currX, unit.currY);
 
-      // Cute Cartoon Body
-      ctx.fillStyle = evo.color;
+      // Draconian Body
+      ctx.fillStyle = evo.primary;
       ctx.beginPath();
-      ctx.arc(0, 0, 8 * evo.scale, 0, Math.PI * 2);
+      ctx.arc(0, 0, 7.5 * evo.scale, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cute Big Eyes
+      // Glowing Eyes
       ctx.fillStyle = evo.eye;
+      ctx.shadowColor = evo.eye;
+      ctx.shadowBlur = 4;
       ctx.beginPath();
-      ctx.arc(-3, -3, 2.5, 0, Math.PI * 2);
-      ctx.arc(3, -3, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(-3, -3, 1.2, 0, Math.PI * 2);
-      ctx.arc(3, -3, 1.2, 0, Math.PI * 2);
+      ctx.arc(-2.5, -2.5, 1.8, 0, Math.PI * 2);
+      ctx.arc(2.5, -2.5, 1.8, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.restore();
     }
 
-    // 2. Draw Lead Highly Stylized Dragon
+    // 2. Draw Realistic Lead Dragon (Muscular Wing Bones & Slit Eyes)
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.scale(evo.scale, evo.scale);
 
-    // Shield Energy Bubble
+    // Shield Energy Aura
     if (this.shieldTimer > 0) {
       ctx.strokeStyle = '#60a5fa';
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 3.5;
       ctx.shadowColor = '#3b82f6';
       ctx.shadowBlur = 15;
       ctx.beginPath();
@@ -207,9 +202,9 @@ export class DragonSquad {
       ctx.stroke();
     }
 
-    // Ancient Dragon Majestic Golden Crown
+    // Ancient Dragon Spiked Gold Crown
     if (this.squadSize >= 25) {
-      ctx.fillStyle = '#f59e0b';
+      ctx.fillStyle = '#d97706';
       ctx.beginPath();
       ctx.moveTo(-14, -26);
       ctx.lineTo(-18, -44);
@@ -222,56 +217,65 @@ export class DragonSquad {
       ctx.fill();
     }
 
-    // Stylized Gradient Wings
-    ctx.fillStyle = evo.body;
+    // Muscular Bat-Like Dragon Wings with Bone Struts
+    ctx.fillStyle = evo.secondary;
+    ctx.strokeStyle = evo.primary;
+    ctx.lineWidth = 2;
+
+    // Left Wing
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-45, -28, -68, 10);
-    ctx.quadraticCurveTo(-40, 28, 0, 0);
+    ctx.moveTo(0, -5);
+    ctx.lineTo(-48, -26);
+    ctx.lineTo(-68, 6);
+    ctx.lineTo(-42, 22);
+    ctx.lineTo(-24, 10);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Right Wing
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
+    ctx.lineTo(48, -26);
+    ctx.lineTo(68, 6);
+    ctx.lineTo(42, 22);
+    ctx.lineTo(24, 10);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Realistic Dragon Body & Scale Layer
+    ctx.fillStyle = evo.primary;
+    ctx.beginPath();
+    ctx.arc(0, 0, 21, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(45, -28, 68, 10);
-    ctx.quadraticCurveTo(40, 28, 0, 0);
-    ctx.fill();
-
-    // Stylized Body & Head
-    ctx.fillStyle = evo.color;
-    ctx.beginPath();
-    ctx.arc(0, 0, 22, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Stylized Crest Horns
+    // Obsidian Horns
     ctx.fillStyle = evo.horn;
     ctx.beginPath();
-    ctx.moveTo(-10, -18); ctx.lineTo(-18, -34); ctx.lineTo(-4, -22); ctx.fill();
+    ctx.moveTo(-9, -16); ctx.lineTo(-17, -36); ctx.lineTo(-3, -20); ctx.fill();
     ctx.beginPath();
-    ctx.moveTo(10, -18); ctx.lineTo(18, -34); ctx.lineTo(4, -22); ctx.fill();
+    ctx.moveTo(9, -16); ctx.lineTo(17, -36); ctx.lineTo(3, -20); ctx.fill();
 
-    // Cartoon Cute Snout
-    ctx.fillStyle = evo.body;
+    // Snout & Brow Ridges
+    ctx.fillStyle = evo.secondary;
     ctx.beginPath();
-    ctx.roundRect(-11, -28, 22, 16, 6);
+    ctx.roundRect(-10, -28, 20, 15, 5);
     ctx.fill();
 
-    // Expressive Cartoon Eyes with Dual Shine Highlights
+    // Slit-Pupil Glowing Dragon Eyes
     ctx.fillStyle = evo.eye;
+    ctx.shadowColor = evo.eye;
+    ctx.shadowBlur = 6;
     ctx.beginPath();
-    ctx.arc(-8, -12, 6, 0, Math.PI * 2);
-    ctx.arc(8, -12, 6, 0, Math.PI * 2);
+    ctx.ellipse(-7, -13, 4.5, 3, Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(7, -13, 4.5, 3, -Math.PI / 4, 0, Math.PI * 2);
     ctx.fill();
 
+    // Slit Pupils
     ctx.fillStyle = '#0f172a';
+    ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(-8, -12, 3, 0, Math.PI * 2);
-    ctx.arc(8, -12, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(-9.5, -13.5, 1.3, 0, Math.PI * 2);
-    ctx.arc(6.5, -13.5, 1.3, 0, Math.PI * 2);
+    ctx.ellipse(-7, -13, 1.2, 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(7, -13, 1.2, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
@@ -280,7 +284,7 @@ export class DragonSquad {
     ctx.save();
     ctx.translate(this.x, this.y - 52);
     ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-    ctx.strokeStyle = evo.color;
+    ctx.strokeStyle = evo.primary;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(-35, -12, 70, 24, 8);
@@ -294,7 +298,7 @@ export class DragonSquad {
     ctx.fillText(`${this.squadSize} 🐉`, 0, 1);
     ctx.restore();
 
-    // 4. Stylized Glowing Fireballs
+    // 4. Realistic Fireballs
     for (const fb of this.fireballs) {
       ctx.save();
       ctx.fillStyle = '#f97316';

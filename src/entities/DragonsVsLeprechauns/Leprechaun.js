@@ -25,6 +25,7 @@ export class LeprechaunManager {
     this.bosses = [];
   }
 
+  // Spawn Numerous Small Individual Enemies & Squad Mobs!
   spawnEnemyArmyMob(speed, distance = 0) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -37,19 +38,20 @@ export class LeprechaunManager {
     const progress = Math.min(2.0, distance / 500);
     const isGoldTank = distance > 100 && (Math.random() < (0.2 + progress * 0.15));
 
-    let mobSize = 2;
-    if (distance < 60) {
-      mobSize = Math.floor(Math.random() * 2) + 1;
+    // More small individual enemies (1 to 4 units) for active rapid shooting!
+    let mobSize = 1;
+    if (Math.random() < 0.6) {
+      mobSize = Math.floor(Math.random() * 2) + 1; // 1 or 2 small individual units!
     } else {
-      const minSize = Math.floor(3 + progress * 6);
-      const maxSize = Math.floor(6 + progress * 12);
+      const minSize = Math.floor(2 + progress * 4);
+      const maxSize = Math.floor(4 + progress * 8);
       mobSize = minSize + Math.floor(Math.random() * (maxSize - minSize));
     }
 
     const units = [];
     for (let k = 0; k < mobSize; k++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = Math.sqrt(Math.random()) * Math.min(35, 8 + mobSize * 0.6);
+      const radius = Math.sqrt(Math.random()) * Math.min(30, 6 + mobSize * 0.5);
       units.push({
         offsetX: Math.cos(angle) * radius,
         offsetY: Math.sin(angle) * (radius * 0.6)
@@ -130,7 +132,7 @@ export class LeprechaunManager {
       }
     }
 
-    // 2. Update Regular Mobs
+    // 2. Update Regular Mobs & Individual Enemies
     const activeSpeed = isAnyBossEngaged ? 0 : speed;
     for (let i = this.armyMobs.length - 1; i >= 0; i--) {
       const mob = this.armyMobs[i];
@@ -197,55 +199,70 @@ export class LeprechaunManager {
   draw(ctx) {
     ctx.save();
 
-    // 1. Draw Cute Cartoon Lane Bosses
+    // 1. Draw Realistic Fantasy Lane Bosses
     for (const boss of this.bosses) {
       ctx.save();
       ctx.translate(boss.x, boss.y);
 
-      // Cartoon Crown
-      ctx.fillStyle = '#f59e0b';
+      // Ermine Velvet Cloak
+      ctx.fillStyle = '#065f46';
       ctx.beginPath();
-      ctx.moveTo(-20, -38);
-      ctx.lineTo(-28, -62);
-      ctx.lineTo(-10, -45);
-      ctx.lineTo(0, -68);
-      ctx.lineTo(10, -45);
-      ctx.lineTo(28, -62);
-      ctx.lineTo(20, -38);
+      ctx.moveTo(-35, -20);
+      ctx.lineTo(-45, 30);
+      ctx.lineTo(45, 30);
+      ctx.lineTo(35, -20);
+      ctx.closePath();
       ctx.fill();
 
-      // Cartoon Green Top Hat
-      ctx.fillStyle = '#15803d';
-      ctx.fillRect(-22, -38, 44, 25);
-      ctx.fillRect(-30, -15, 60, 6);
+      // Heavy Gold & Ruby Crown
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.moveTo(-22, -38);
+      ctx.lineTo(-30, -66);
+      ctx.lineTo(-12, -48);
+      ctx.lineTo(0, -72);
+      ctx.lineTo(12, -48);
+      ctx.lineTo(30, -66);
+      ctx.lineTo(22, -38);
+      ctx.fill();
 
-      // Gold Hat Buckle
-      ctx.fillStyle = '#facc15';
-      ctx.fillRect(-8, -25, 16, 10);
+      // Ruby Gems on Crown
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(0, -60, 3, 0, Math.PI * 2);
+      ctx.arc(-22, -55, 2.5, 0, Math.PI * 2);
+      ctx.arc(22, -55, 2.5, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Cute Cartoon Head & Face
-      ctx.fillStyle = '#fed7aa';
+      // Buckled Leather Hat
+      ctx.fillStyle = '#047857';
+      ctx.fillRect(-24, -38, 48, 24);
+      ctx.fillRect(-32, -14, 64, 6);
+
+      // Gold Buckle
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-9, -26, 18, 12);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-5, -22, 10, 4);
+
+      // Realistic Head & Braided Beard
+      ctx.fillStyle = '#fdba74';
       ctx.beginPath();
       ctx.arc(0, 5, 24, 0, Math.PI * 2);
       ctx.fill();
 
-      // Silly Orange Beard
-      ctx.fillStyle = '#ea580c';
+      ctx.fillStyle = '#c2410c'; // Braided ginger beard
       ctx.beginPath();
       ctx.arc(0, 14, 22, 0, Math.PI);
       ctx.fill();
 
-      // Cute Big Eyes
-      ctx.fillStyle = '#ffffff';
+      // Glowing Boss Eyes
+      ctx.fillStyle = '#ef4444';
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 4;
       ctx.beginPath();
-      ctx.arc(-8, 2, 5, 0, Math.PI * 2);
-      ctx.arc(8, 2, 5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(-8, 2, 2.5, 0, Math.PI * 2);
-      ctx.arc(8, 2, 2.5, 0, Math.PI * 2);
+      ctx.arc(-8, 2, 4, 0, Math.PI * 2);
+      ctx.arc(8, 2, 4, 0, Math.PI * 2);
       ctx.fill();
 
       // Health Bar
@@ -263,7 +280,7 @@ export class LeprechaunManager {
       ctx.restore();
     }
 
-    // 2. Draw Cute Cartoon Leprechaun Mobs & Gold Pot Tanks
+    // 2. Draw Realistic Small Individual Enemies & Gold Pot Tanks
     for (const mob of this.armyMobs) {
       ctx.save();
       ctx.translate(mob.x, mob.y);
@@ -273,36 +290,39 @@ export class LeprechaunManager {
         ctx.translate(u.offsetX, u.offsetY);
 
         if (mob.isGoldTank) {
-          // Cartoon Gold Pot Tank
-          ctx.fillStyle = '#1e293b';
+          // Iron-Hooped Cauldron Tank
+          ctx.fillStyle = '#0f172a';
           ctx.beginPath();
-          ctx.arc(0, 2, 11, 0, Math.PI * 2);
+          ctx.arc(0, 2, 12, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#facc15';
+          ctx.fillStyle = '#eab308'; // Gleaming Gold Coins
           ctx.beginPath();
-          ctx.arc(0, -3, 8, 0, Math.PI);
+          ctx.arc(0, -3, 9, 0, Math.PI);
           ctx.fill();
         } else {
-          // Cartoon Cute Leprechaun
-          ctx.fillStyle = '#ea580c'; // Orange beard
+          // Realistic Individual Leprechaun Warrior
+          ctx.fillStyle = '#c2410c'; // Ginger beard
           ctx.beginPath();
           ctx.arc(0, 4, 8, 0, Math.PI);
           ctx.fill();
 
-          ctx.fillStyle = '#fed7aa'; // Face
+          ctx.fillStyle = '#fed7aa'; // Realistic Skin
           ctx.beginPath();
           ctx.arc(0, 0, 7, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#15803d'; // Green Top Hat
+          ctx.fillStyle = '#047857'; // Forest Green Coat & Hat
           ctx.fillRect(-6, -11, 12, 6);
           ctx.fillRect(-8, -5, 16, 2);
 
-          ctx.fillStyle = '#ffffff'; // Eyes
+          ctx.fillStyle = '#f59e0b'; // Gold Hat Buckle
+          ctx.fillRect(-3, -9, 6, 4);
+
+          ctx.fillStyle = '#0f172a'; // Eyes
           ctx.beginPath();
-          ctx.arc(-2.5, -1, 1.8, 0, Math.PI * 2);
-          ctx.arc(2.5, -1, 1.8, 0, Math.PI * 2);
+          ctx.arc(-2.5, -1, 1.5, 0, Math.PI * 2);
+          ctx.arc(2.5, -1, 1.5, 0, Math.PI * 2);
           ctx.fill();
         }
 
