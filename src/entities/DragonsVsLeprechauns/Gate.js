@@ -20,12 +20,11 @@ export class GateManager {
     const roadWidth = this.canvasWidth - 80;
     const laneWidth = roadWidth / this.numLanes;
 
-    // Pick 1 lane (0 or 1) for staggered gate spawn
     const lane = Math.floor(Math.random() * this.numLanes);
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
     
-    // Gate value ranges from -2 to +4
-    const value = Math.floor(Math.random() * 7) - 2;
+    // Spawn Negative Gates that must be turned positive! (e.g. -6, -4, -3)
+    const initialValue = -(Math.floor(Math.random() * 5) + 2); // -2 to -6
     const y = -80;
 
     this.gates.push({
@@ -33,7 +32,7 @@ export class GateManager {
       x,
       y,
       width: laneWidth - 12,
-      value,
+      value: initialValue,
       passed: false
     });
   }
@@ -43,19 +42,19 @@ export class GateManager {
       const g = this.gates[i];
       g.y += speed;
 
-      // Check fireball hits -> INCREASES THE GATE VALUE!
+      // Check fireball hits -> TURNS NEGATIVE GATES POSITIVE!
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - g.y) < 25) {
           dragonSquad.fireballs.splice(j, 1);
-          g.value += 1; // Shooting the gate increases value!
+          g.value += 1; // Each fireball hit turns negative value positive!
         }
       }
 
       // Check Dragon collision with gate
       if (!g.passed && Math.abs(g.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
         g.passed = true;
-        onHitGate(g.value);
+        onHitGate(g.value); // If still negative, inflicts damage (removes dragons)!
         this.gates.splice(i, 1);
         continue;
       }
@@ -78,31 +77,32 @@ export class GateManager {
       const color = isPositive ? '#10b981' : '#ef4444';
       const label = isPositive ? `+${g.value}` : `${g.value}`;
 
-      // Archway Box
-      ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)';
+      // Gate Archway
+      ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.45)';
       ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
 
       ctx.beginPath();
-      ctx.roundRect(-g.width / 2, -25, g.width, 50, 10);
+      ctx.roundRect(-g.width / 2, -26, g.width, 52, 10);
       ctx.fill();
       ctx.stroke();
 
       // Posts
       ctx.fillStyle = color;
-      ctx.fillRect(-g.width / 2, -25, 6, 50);
-      ctx.fillRect(g.width / 2 - 6, -25, 6, 50);
+      ctx.fillRect(-g.width / 2, -26, 6, 52);
+      ctx.fillRect(g.width / 2 - 6, -26, 6, 52);
 
-      // Label
+      // Gate Value Label
       ctx.fillStyle = '#ffffff';
-      ctx.font = '800 18px Outfit';
+      ctx.font = '800 20px Outfit';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, 0, -2);
+      ctx.fillText(label, 0, -3);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.font = '600 10px Outfit';
-      ctx.fillText('SHOOT TO BOOST 🎯', 0, 15);
+      // Gate Action Hint
+      ctx.fillStyle = isPositive ? 'rgba(255, 255, 255, 0.9)' : '#fef08a';
+      ctx.font = '700 9.5px Outfit';
+      ctx.fillText(isPositive ? 'POSITIVE GATE! 🌟' : 'SHOOT TO TURN POSITIVE! 💥', 0, 15);
 
       ctx.restore();
     }

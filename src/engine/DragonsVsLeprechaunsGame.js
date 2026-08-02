@@ -32,6 +32,7 @@ export class DragonsVsLeprechaunsGame {
     );
 
     this.spawnTimer = 0;
+    this.miniBossTimer = 0;
     this.gateTimer = 0;
     this.lastTime = 0;
 
@@ -100,28 +101,47 @@ export class DragonsVsLeprechaunsGame {
     this.score += dt * 15;
     this.dragonSquad.update(dt, this.soundSynth);
 
+    // Spawn Bundled Enemy Clusters
     this.spawnTimer += dt;
-    if (this.spawnTimer > 0.65) {
+    if (this.spawnTimer > 1.1) {
       this.spawnTimer = 0;
-      this.leprechaunManager.spawnLeprechaun(this.speed);
+      this.leprechaunManager.spawnBundledCluster(this.speed);
     }
 
+    // Spawn Mini-Bosses (Every 6.5s)
+    this.miniBossTimer += dt;
+    if (this.miniBossTimer > 6.5) {
+      this.miniBossTimer = 0;
+      this.leprechaunManager.spawnMiniBoss(this.speed);
+    }
+
+    // Spawn Single Staggered Negative Gates (Every 5.0s)
     this.gateTimer += dt;
-    if (this.gateTimer > 5.5) {
+    if (this.gateTimer > 5.0) {
       this.gateTimer = 0;
       this.gateManager.spawnSingleStaggeredGate();
     }
 
+    // Update Leprechauns & Mini-Bosses
     this.leprechaunManager.update(
       this.speed,
       this.dragonSquad,
       (lep) => {
+        // Basic enemy eliminated
         this.leprechaunsEliminated++;
         this.score += 200;
         this.soundSynth.playMoonpieChime();
       },
-      (escapedLep) => {
-        this.dragonSquad.removeDragons(1);
+      (miniBoss) => {
+        // MINI-BOSS ELIMINATED -> +1500 PTS & +3 MINI DRAGONS!
+        this.leprechaunsEliminated += 5;
+        this.score += 1500;
+        this.dragonSquad.addDragons(3);
+        this.soundSynth.playShopBuy();
+      },
+      (penalty) => {
+        // ESCAPED ENEMY -> -1 to player dragon total!
+        this.dragonSquad.removeDragons(penalty);
         this.soundSynth.playPotholeCrash();
 
         if (this.dragonSquad.dragonCount <= 0) {
@@ -130,6 +150,7 @@ export class DragonsVsLeprechaunsGame {
       }
     );
 
+    // Update Negative/Positive Gates
     this.gateManager.update(this.speed, this.dragonSquad, (gateValue) => {
       if (gateValue >= 0) {
         this.dragonSquad.addDragons(gateValue);
@@ -148,6 +169,7 @@ export class DragonsVsLeprechaunsGame {
       this.gameOver('All dragons eliminated!');
     }
 
+    // Update HUD
     document.getElementById('hud-potholes').innerText = this.leprechaunsEliminated;
     document.getElementById('hud-next-milestone').innerText = '(Leprechauns)';
     document.getElementById('hud-moonpies').innerText = this.dragonSquad.dragonCount;
