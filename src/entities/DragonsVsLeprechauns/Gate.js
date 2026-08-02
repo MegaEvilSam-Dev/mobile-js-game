@@ -15,8 +15,7 @@ export class GateManager {
     this.gates = [];
   }
 
-  // All bonus gates start negative and must be shot to become positive!
-  // Dodged gates that pass by without collision do NOT negate dragons!
+  // Spawns Gate Pairs with Math Operators (+, x, -, ÷)
   spawnSingleStaggeredGate(currentDragonCount = 2) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
@@ -24,18 +23,23 @@ export class GateManager {
 
     const lane = Math.floor(Math.random() * this.numLanes);
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
-    
-    // Scale initial negative value (-2 to -6)
-    const maxNeg = Math.min(6, Math.max(2, Math.floor(currentDragonCount * 0.75)));
-    const initialValue = -(Math.floor(Math.random() * maxNeg) + 2); // Starts negative!
     const y = -80;
+
+    const ops = ['+', 'x', '-', '÷'];
+    const op = ops[Math.floor(Math.random() * ops.length)];
+    let val = (op === 'x' || op === '÷') ? (Math.floor(Math.random() * 2) + 2) : (Math.floor(Math.random() * 5) + 2);
+    
+    // Negative initial values for - and ÷
+    if (op === '-') val = -(Math.floor(Math.random() * 4) + 2);
 
     this.gates.push({
       lane,
       x,
       y,
       width: laneWidth - 10,
-      value: initialValue,
+      op,
+      val,
+      isPositive: op === '+' || op === 'x',
       passed: false
     });
   }
@@ -45,25 +49,39 @@ export class GateManager {
       const g = this.gates[i];
       g.y += speed;
 
-      // Check fireball hits -> TURNS NEGATIVE BONUS GATES POSITIVE!
+      // Check fireball hits -> TURNS NEGATIVE GATES POSITIVE & BOOSTS VALUES!
       for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
         const fb = dragonSquad.fireballs[j];
         if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - g.y) < 25) {
           dragonSquad.fireballs.splice(j, 1);
-          g.value += 1; // Shooting increments gate value!
+          
+          if (g.op === '+' || g.op === 'x') {
+            g.val += 1;
+          } else if (g.op === '-') {
+            g.val += 1;
+            if (g.val >= 0) {
+              g.op = '+';
+              g.isPositive = true;
+            }
+          } else if (g.op === '÷') {
+            g.val -= 1;
+            if (g.val <= 1) {
+              g.op = 'x';
+              g.val = 2;
+              g.isPositive = true;
+            }
+          }
         }
       }
 
       // Check Dragon direct collision with gate
-      // ONLY NEGATES DRAGONS IF DRAGON DIRECTLY COLLIDES/HITS THE GATE!
       if (!g.passed && Math.abs(g.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
         g.passed = true;
-        onHitGate(g.value); // Trigger hit effect (gain bonus dragons if positive, lose dragons if negative)
+        onHitGate(g);
         this.gates.splice(i, 1);
         continue;
       }
 
-      // Gate passes by without being hit -> NO PENALTY! Cleanly removed!
       if (g.y > this.canvasHeight + 80) {
         this.gates.splice(i, 1);
       }
@@ -78,12 +96,11 @@ export class GateManager {
       ctx.save();
       ctx.translate(g.x, g.y);
 
-      const isPositive = g.value >= 0;
-      const color = isPositive ? '#10b981' : '#ef4444';
-      const label = isPositive ? `+${g.value}` : `${g.value}`;
+      const color = g.isPositive ? '#10b981' : '#ef4444';
+      const label = `${g.op}${g.val}`;
 
       // Archway Box
-      ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.45)';
+      ctx.fillStyle = g.isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.45)';
       ctx.strokeStyle = color;
       ctx.lineWidth = 3.5;
 
@@ -105,9 +122,9 @@ export class GateManager {
       ctx.fillText(label, 0, -3);
 
       // Gate Action Hint
-      ctx.fillStyle = isPositive ? 'rgba(255, 255, 255, 0.9)' : '#fef08a';
+      ctx.fillStyle = g.isPositive ? 'rgba(255, 255, 255, 0.9)' : '#fef08a';
       ctx.font = '700 9.5px Outfit';
-      ctx.fillText(isPositive ? 'BONUS READY! 🌟' : 'SHOOT TO CONVERT OR DODGE! 💥', 0, 15);
+      ctx.fillText(g.isPositive ? 'BOOST READY! 🌟' : 'SHOOT TO CONVERT! 💥', 0, 15);
 
       ctx.restore();
     }

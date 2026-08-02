@@ -147,26 +147,22 @@ export class DragonsVsLeprechaunsGame {
       }
     );
 
-    // Update Negative/Positive Gates (Balanced flock addition & cap)
-    this.gateManager.update(this.speed, this.dragonSquad, (gateValue) => {
-      if (gateValue >= 0) {
-        const maxCap = 12;
-        const current = this.dragonSquad.dragonCount;
-        const newTotal = Math.min(maxCap, current + gateValue);
-        const addedDragons = newTotal - current;
-        const overflowDragons = gateValue - addedDragons;
+    // Update Negative/Positive Math Gates
+    this.gateManager.update(this.speed, this.dragonSquad, (gate) => {
+      let current = this.dragonSquad.dragonCount;
+      let newTotal = current;
 
-        if (addedDragons > 0) {
-          this.dragonSquad.addDragons(addedDragons);
-        }
-        if (overflowDragons > 0) {
-          this.score += overflowDragons * 500; // Bonus points for capped dragons!
-        }
+      if (gate.op === '+') newTotal = current + Math.abs(gate.val);
+      else if (gate.op === 'x') newTotal = current * gate.val;
+      else if (gate.op === '-') newTotal = Math.max(0, current - Math.abs(gate.val));
+      else if (gate.op === '÷') newTotal = Math.max(0, Math.floor(current / Math.max(1, gate.val)));
+
+      this.dragonSquad.dragonCount = Math.min(15, newTotal);
+
+      if (gate.isPositive) {
         this.soundSynth.playShopBuy();
       } else {
-        this.dragonSquad.removeDragons(Math.abs(gateValue));
         this.soundSynth.playPotholeCrash();
-
         if (this.dragonSquad.dragonCount <= 0) {
           this.gameOver('Hit negative gate! All dragons lost!');
         }
