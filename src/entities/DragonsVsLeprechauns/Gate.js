@@ -23,16 +23,18 @@ export class GateManager {
     const lane = Math.floor(Math.random() * this.numLanes);
     const x = roadX + (lane * laneWidth) + (laneWidth / 2);
     
-    // Spawn Negative Gates with easier values (-1 to -3) for balanced difficulty
-    const initialValue = -(Math.floor(Math.random() * 3) + 1); // -1, -2, or -3
+    // Spawn Larger Negative Gates (-4 to -12)
+    const isLarge = Math.random() < 0.6; // 60% chance for large negative gate
+    const initialValue = isLarge ? -(Math.floor(Math.random() * 8) + 4) : -(Math.floor(Math.random() * 3) + 2); // -4 to -12
     const y = -80;
 
     this.gates.push({
       lane,
       x,
       y,
-      width: laneWidth - 12,
+      width: laneWidth - 10,
       value: initialValue,
+      isLarge,
       passed: false
     });
   }
@@ -47,14 +49,14 @@ export class GateManager {
         const fb = dragonSquad.fireballs[j];
         if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - g.y) < 25) {
           dragonSquad.fireballs.splice(j, 1);
-          g.value += 1; // Each fireball hit turns negative value positive!
+          g.value += 1; // Shooting increases gate value!
         }
       }
 
       // Check Dragon collision with gate
       if (!g.passed && Math.abs(g.y - dragonSquad.y) < 30 && g.lane === dragonSquad.lane) {
         g.passed = true;
-        onHitGate(g.value); // If still negative, inflicts damage (removes dragons)!
+        onHitGate(g.value);
         this.gates.splice(i, 1);
         continue;
       }
@@ -77,10 +79,10 @@ export class GateManager {
       const color = isPositive ? '#10b981' : '#ef4444';
       const label = isPositive ? `+${g.value}` : `${g.value}`;
 
-      // Gate Archway
-      ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.45)';
+      // Archway Box (Large gates have thicker borders)
+      ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.5)';
       ctx.strokeStyle = color;
-      ctx.lineWidth = 3.5;
+      ctx.lineWidth = g.isLarge && !isPositive ? 4.5 : 3;
 
       ctx.beginPath();
       ctx.roundRect(-g.width / 2, -26, g.width, 52, 10);
@@ -101,8 +103,14 @@ export class GateManager {
 
       // Gate Action Hint
       ctx.fillStyle = isPositive ? 'rgba(255, 255, 255, 0.9)' : '#fef08a';
-      ctx.font = '700 9.5px Outfit';
-      ctx.fillText(isPositive ? 'POSITIVE GATE! 🌟' : 'SHOOT TO TURN POSITIVE! 💥', 0, 15);
+      ctx.font = '700 9px Outfit';
+      if (isPositive) {
+        ctx.fillText('POSITIVE GATE! 🌟', 0, 15);
+      } else if (g.isLarge) {
+        ctx.fillText('⚡ LARGE NEGATIVE GATE! ⚡', 0, 15);
+      } else {
+        ctx.fillText('SHOOT TO CONVERT! 💥', 0, 15);
+      }
 
       ctx.restore();
     }
