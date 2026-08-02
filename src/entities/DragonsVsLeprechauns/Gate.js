@@ -15,32 +15,30 @@ export class GateManager {
     this.gatePairs = [];
   }
 
-  // Spawns Multiplier Gate Pairs with choice between Positive and Negative Gates!
-  spawnGatePair(currentDragonCount = 10, isFirstGate = false) {
+  // Spawns Balanced Arcade Multiplier Gate Pairs
+  spawnGatePair(currentDragonCount = 5, isFirstGate = false) {
     const roadX = 40;
     const roadWidth = this.canvasWidth - 80;
     const halfWidth = roadWidth / 2;
 
     let op1 = '+';
-    let val1 = 15;
+    let val1 = 5;
     let op2 = 'x';
     let val2 = 2;
     let isPos1 = true;
     let isPos2 = true;
 
     if (!isFirstGate) {
-      const posOps = ['+', 'x'];
-      const negOps = ['-'];
-
       const posLane = Math.floor(Math.random() * 2);
 
-      // Positive Gate
-      const pOp = posOps[Math.floor(Math.random() * posOps.length)];
-      const pVal = (pOp === 'x') ? 3 : (Math.floor(Math.random() * 15) + 10);
+      // Balanced Positive Gate (+3 to +8, or x2)
+      const isMult = Math.random() < 0.35 && currentDragonCount < 40;
+      const pOp = isMult ? 'x' : '+';
+      const pVal = isMult ? 2 : (Math.floor(Math.random() * 6) + 3);
 
-      // Negative Gate (forces player to shoot it to make it positive or avoid it!)
-      const nOp = negOps[0];
-      const nVal = Math.floor(Math.random() * 12) + 8; // e.g. -8 to -20
+      // Balanced Negative Gate (-4 to -8)
+      const nOp = '-';
+      const nVal = Math.floor(Math.random() * 5) + 4;
 
       if (posLane === 0) {
         op1 = pOp; val1 = pVal; isPos1 = true;
@@ -50,9 +48,9 @@ export class GateManager {
         op2 = pOp; val2 = pVal; isPos2 = true;
       }
     } else {
-      // First Gate is GUARANTEED MASSIVE POSITIVE BOOST
-      op1 = '+'; val1 = 20; isPos1 = true;
-      op2 = 'x'; val2 = 3; isPos2 = true;
+      // First Gate is a Balanced Warm-Up Boost (+5 or x2)
+      op1 = '+'; val1 = 5; isPos1 = true;
+      op2 = 'x'; val2 = 2; isPos2 = true;
     }
 
     const y = -90;
@@ -72,7 +70,7 @@ export class GateManager {
       pair.y += speed;
 
       for (const g of pair.gates) {
-        // Fireball hits dynamically boost gate value!
+        // Fireball hits dynamically upgrade gate value!
         for (let j = dragonSquad.fireballs.length - 1; j >= 0; j--) {
           const fb = dragonSquad.fireballs[j];
           if (Math.abs(fb.x - g.x) < g.width / 2 && Math.abs(fb.y - pair.y) < 25) {

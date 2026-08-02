@@ -13,7 +13,7 @@ export class DragonsVsLeprechaunsGame {
     this.onReturnMenu = onReturnMenu;
 
     this.state = 'RUNNING';
-    this.speed = 2.2; // Starts at a smooth, relaxing, accessible speed!
+    this.speed = 2.8; // Balanced warm-up speed
     this.distance = 0;
     this.score = 0;
     this.enemiesDefeated = 0;
@@ -174,10 +174,10 @@ export class DragonsVsLeprechaunsGame {
     // If boss is engaged meeting player, pause forward track scrolling & spawner!
     if (isBossEngaged) return;
 
-    // Track Distance & Speed Scaling (starts slow at 2.2)
-    this.distance += dt * 30;
+    // Track Distance & Speed Scaling (balanced 2.8 scaling to 4.2)
+    this.distance += dt * 32;
     this.score += dt * 20;
-    this.speed = 2.2 + Math.min(1.8, (this.distance / 500) * 1.6);
+    this.speed = 2.8 + Math.min(1.4, (this.distance / 500) * 1.4);
 
     const currentBossMilestone = Math.floor(this.distance / 200);
     if (currentBossMilestone > this.lastBossMilestone && this.distance >= 200) {
