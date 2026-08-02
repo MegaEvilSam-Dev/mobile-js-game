@@ -16,10 +16,13 @@ export class DragonsVsLeprechaunsGame {
     this.height = canvas.clientHeight;
 
     this.state = 'RUNNING';
-    this.speed = 3.2; // Starts warm-up speed
+    this.speed = 3.4;
     this.distance = 0;
     this.score = 0;
     this.enemiesDefeated = 0;
+    this.lastBossMilestone = 0;
+    this.bossCount = 0;
+
     this.numLanes = 2;
 
     this.dragonSquad = new DragonSquad(this.width, this.height);
@@ -74,7 +77,7 @@ export class DragonsVsLeprechaunsGame {
   }
 
   togglePause() {
-    if (this.state === 'RUNNING' || this.state === 'BOSS_ARENA') {
+    if (this.state === 'RUNNING') {
       this.state = 'PAUSED';
       document.getElementById('pause-screen').classList.remove('hidden');
     } else if (this.state === 'PAUSED') {
@@ -88,30 +91,14 @@ export class DragonsVsLeprechaunsGame {
     document.getElementById('pause-screen').classList.add('hidden');
   }
 
-  triggerBossArenaPhase() {
-    this.state = 'BOSS_ARENA';
-    this.dragonSquad.isBossBreathAttack = true;
-    
-    // Dynamically scale boss HP relative to squad size for an accurate climax!
-    const bossHp = Math.max(60, Math.min(200, Math.round(this.dragonSquad.squadSize * 3.5)));
+  // Spawns a Tough Boss on the Track without stopping forward runner movement!
+  spawnTrackBoss() {
+    this.bossCount++;
+    const bossHp = 50 + (this.bossCount * 40); // 1st: 90 HP, 2nd: 130 HP, 3rd: 170 HP
     this.leprechaunManager.spawnBoss(bossHp);
-    
     this.soundSynth.playDragonRoar();
     this.particlePool.triggerShake(8, 0.4);
-  }
-
-  victory() {
-    this.state = 'VICTORY';
-    this.soundSynth.playShopBuy();
-
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('gameover-reason').innerText = '🏆 LEPRECHAUN KING DEFEATED! VICTORY!';
-    
-    document.getElementById('go-potholes').innerText = this.enemiesDefeated;
-    document.getElementById('go-moonpies').innerText = `${this.dragonSquad.squadSize} 🐉`;
-    document.getElementById('go-score').innerText = Math.round(this.score + 5000);
-
-    document.getElementById('gameover-screen').classList.remove('hidden');
+    this.particlePool.spawnDamagePopup(this.width / 2, 100, `👑 BOSS ${this.bossCount} APPROACHING!`, '#f59e0b');
   }
 
   gameOver(reason) {
@@ -129,50 +116,37 @@ export class DragonsVsLeprechaunsGame {
   }
 
   update(dt) {
-    if (this.state !== 'RUNNING' && this.state !== 'BOSS_ARENA') return;
+    if (this.state !== 'RUNNING') return;
 
     this.particlePool.update(dt);
     this.dragonSquad.update(dt);
 
-    // --- BOSS ARENA PHASE ---
-    if (this.state === 'BOSS_ARENA') {
-      this.leprechaunManager.update(
-        0,
-        this.dragonSquad,
-        this.particlePool,
-        () => {},
-        () => {},
-        () => {},
-        () => this.victory()
-      );
-      return;
-    }
-
-    // --- ACCURATE INCREASING DIFFICULTY scaling ---
+    // Continuous Endless Track Distance & Speed Scaling
     this.distance += dt * 35;
     this.score += dt * 25;
 
-    // Smooth Progressive Speed Scaling (3.2 ➔ 4.8)
-    this.speed = 3.2 + Math.min(1.6, (this.distance / 250) * 1.6);
+    // Gradual difficulty scaling with distance
+    this.speed = 3.4 + Math.min(2.0, (this.distance / 500) * 1.5);
 
-    // Transition to Boss Arena at 250m
-    if (this.distance >= 250) {
-      this.triggerBossArenaPhase();
-      return;
+    // Check Boss Spawn Milestone (Every 200m on the track!)
+    const currentBossMilestone = Math.floor(this.distance / 200);
+    if (currentBossMilestone > this.lastBossMilestone && this.distance >= 200) {
+      this.lastBossMilestone = currentBossMilestone;
+      this.spawnTrackBoss();
     }
 
-    // 1. Spawn Multiplier Gates FIRST (Arrives immediately at start distance 15m for guaranteed squad upgrade!)
+    // 1. Spawn Multiplier Gates (Arrives first at start distance 15m for initial upgrade!)
     this.gateTimer += dt;
-    if (this.gateTimer > 1.8) {
-      const isFirst = (this.gateManager.gatePairs.length === 0);
+    if (this.gateTimer > 3.8) {
+      const isFirst = (this.gateManager.gatePairs.length === 0 && this.distance < 40);
       this.gateTimer = 0;
       this.gateManager.spawnGatePair(this.dragonSquad.squadSize, isFirst);
     }
 
-    // 2. Spawn Enemy Mobs (Delayed until distance > 70m AFTER the first upgrade gate!)
-    if (this.distance > 70) {
+    // 2. Spawn Enemy Mobs
+    if (this.distance > 60) {
       this.spawnTimer += dt;
-      const enemySpawnInterval = Math.max(1.4, 2.4 - (this.distance / 250) * 0.8);
+      const enemySpawnInterval = Math.max(1.4, 2.4 - (this.distance / 500) * 0.8);
       if (this.spawnTimer > enemySpawnInterval) {
         this.spawnTimer = 0;
         this.leprechaunManager.spawnEnemyArmyMob(this.speed, this.distance);
@@ -194,7 +168,7 @@ export class DragonsVsLeprechaunsGame {
       this.particlePool.spawnDamagePopup(this.dragonSquad.x, this.dragonSquad.y - 30, `+${type.toUpperCase()}`, '#60a5fa');
     });
 
-    // Update Enemy Mobs
+    // Update Enemy Mobs & Tough Track Bosses
     this.leprechaunManager.update(
       this.speed,
       this.dragonSquad,
@@ -216,7 +190,14 @@ export class DragonsVsLeprechaunsGame {
           this.gameOver('Red Leprechaun Army overran your base!');
         }
       },
-      () => {}
+      (boss) => {
+        // Track Boss Defeated on the Highway! GAME CONTINUES SEAMLESSLY!
+        this.enemiesDefeated += 25;
+        this.score += 5000;
+        this.dragonSquad.addDragons(10); // Reward +10 dragons!
+        this.soundSynth.playShopBuy();
+        this.particlePool.spawnDamagePopup(this.width / 2, 140, '🏆 BOSS DEFEATED! +5000 PTS & +10 DRAGONS!', '#10b981');
+      }
     );
 
     // Update Multiplier Gates
@@ -245,8 +226,9 @@ export class DragonsVsLeprechaunsGame {
 
     // Update HUD
     const evo = this.dragonSquad.getEvolutionTier();
+    const nextBossDist = Math.max(0, Math.round(((this.lastBossMilestone + 1) * 200) - this.distance));
     document.getElementById('hud-potholes').innerText = this.enemiesDefeated;
-    document.getElementById('hud-next-milestone').innerText = `(${Math.max(0, Math.round(250 - this.distance))}m to Boss)`;
+    document.getElementById('hud-next-milestone').innerText = `(${nextBossDist}m to Boss ${this.bossCount + 1})`;
     document.getElementById('hud-moonpies').innerText = `${this.dragonSquad.squadSize} 🐉`;
     if (document.getElementById('hud-ammo-count')) {
       document.getElementById('hud-ammo-count').innerText = evo.name;
@@ -298,7 +280,7 @@ export class DragonsVsLeprechaunsGame {
   }
 
   run(time = 0) {
-    if (this.state === 'GAMEOVER' || this.state === 'VICTORY') return;
+    if (this.state === 'GAMEOVER') return;
     const dt = Math.min((time - this.lastTime) / 1000, 0.05);
     this.lastTime = time;
 
